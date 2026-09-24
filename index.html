@@ -29,26 +29,42 @@
     </div>
   </div>
 
-  <select id="packet">
-    <option>Loading packets...</option>
-  </select>
+
+  <!-- PACKET SELECTOR -->
+
+  <button id="packetButton" class="packet-button" type="button">
+    SELECT PACKET
+  </button>
+
+
+  <!-- SUBJECT -->
 
   <select id="subject">
     <option value="all">All Subjects</option>
   </select>
 
+
+  <!-- SPEED -->
+
   <select id="speed">
-    <option value="0.75">0.7×</option>
+
+    <option value="0.7">0.7×</option>
     <option value="0.75">0.75×</option>
-    <option value="0.75">0.8×</option>
-    <option value="0.75">0.85×</option>
-    <option value="0.75">0.9×</option>
+    <option value="0.8">0.8×</option>
+    <option value="0.85">0.85×</option>
+    <option value="0.9">0.9×</option>
+
     <option value="1" selected>1×</option>
+
     <option value="1.25">1.25×</option>
     <option value="1.5">1.5×</option>
-    <option value="0.75">1.75×</option>
+    <option value="1.75">1.75×</option>
     <option value="2">2×</option>
+
   </select>
+
+
+  <!-- VOICE -->
 
   <select id="voice">
     <option>Loading voices...</option>
@@ -63,17 +79,22 @@
     ♡　✦　୨୧　✦　♡
   </div>
 
+
   <div id="info">
     Loading...
   </div>
 
+
   <div id="timer"></div>
+
 
   <div id="question">
     Loading...
   </div>
 
+
   <div id="answer"></div>
+
 
   <div class="controls">
 
@@ -103,7 +124,40 @@
 </footer>
 
 
+<!-- ============================== -->
+<!-- PACKET POPUP -->
+<!-- ============================== -->
+
+<div id="packetModal" class="packet-modal">
+
+  <div class="packet-modal-card">
+
+    <button
+      id="closePacketModal"
+      class="packet-close"
+      type="button"
+    >
+      ×
+    </button>
+
+    <div class="packet-modal-title">
+      SELECT PACKET
+    </div>
+
+    <div class="packet-modal-subtitle">
+      Choose a Science Bowl packet
+    </div>
+
+    <div id="packetList" class="packet-list"></div>
+
+  </div>
+
+</div>
+
+
+<!-- ============================== -->
 <!-- CONTACT POPUP -->
+<!-- ============================== -->
 
 <div id="contactModal" class="contact-modal">
 
