@@ -32,7 +32,9 @@ body {
 }
 
 
-/* HEADER */
+/* =========================
+   HEADER
+   ========================= */
 
 header {
   padding: 18px 24px;
@@ -70,9 +72,13 @@ h1::before {
 }
 
 
-/* DROPDOWNS */
+/* =========================
+   DROPDOWNS
+   ========================= */
 
 select {
+  appearance: none;
+
   background: #fff;
 
   color: #60445b;
@@ -108,7 +114,9 @@ select:focus {
 }
 
 
-/* MAIN */
+/* =========================
+   MAIN
+   ========================= */
 
 main {
   max-width: 1000px;
@@ -135,7 +143,9 @@ main::before {
 }
 
 
-/* INFO */
+/* =========================
+   INFO
+   ========================= */
 
 #info {
   color: #a47b99;
@@ -147,7 +157,9 @@ main::before {
 }
 
 
-/* QUESTION CARD */
+/* =========================
+   QUESTION CARD
+   ========================= */
 
 #question {
   max-width: 900px;
@@ -175,7 +187,9 @@ main::before {
 }
 
 
-/* QUESTION LABEL */
+/* =========================
+   QUESTION LABEL
+   ========================= */
 
 .question-label {
   margin-bottom: 7px;
@@ -189,7 +203,9 @@ main::before {
 }
 
 
-/* QUESTION TYPE */
+/* =========================
+   FORMAT
+   ========================= */
 
 .question-format {
   margin-bottom: 25px;
@@ -203,7 +219,9 @@ main::before {
 }
 
 
-/* QUESTION TEXT */
+/* =========================
+   QUESTION TEXT
+   ========================= */
 
 .question-text {
   font-size: 25px;
@@ -214,7 +232,9 @@ main::before {
 }
 
 
-/* CHOICES */
+/* =========================
+   CHOICES
+   ========================= */
 
 .choices {
   margin-top: 25px;
@@ -262,7 +282,9 @@ main::before {
 }
 
 
-/* ANSWER */
+/* =========================
+   ANSWER
+   ========================= */
 
 #answer {
   min-height: 45px;
@@ -280,7 +302,9 @@ main::before {
 }
 
 
-/* BUTTONS */
+/* =========================
+   CONTROLS
+   ========================= */
 
 .controls {
   margin-top: 25px;
@@ -339,7 +363,9 @@ button:active {
 }
 
 
-/* MAIN BUTTON */
+/* =========================
+   MAIN BUTTON
+   ========================= */
 
 #mainButton {
   min-width: 285px;
@@ -376,14 +402,26 @@ button:active {
 }
 
 
-/* REPLAY */
+/* =========================
+   INTERRUPT
+   ========================= */
 
-#replay {
+#interrupt {
   min-width: 135px;
+
+  color: #a54f78;
+
+  border-color: #e6a9c5;
+}
+
+#interrupt:hover {
+  background: #fff0f6;
 }
 
 
-/* MOBILE */
+/* =========================
+   MOBILE
+   ========================= */
 
 @media (max-width: 700px) {
 
@@ -429,7 +467,8 @@ button:active {
   }
 
   #mainButton,
-  #replay {
+  #interrupt {
     width: 100%;
   }
+
 }
