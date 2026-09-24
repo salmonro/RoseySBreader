@@ -17,9 +17,25 @@ let questions = [];
 
 let current = 0;
 
+/*
+  Button states:
+
+  "question" = ready to read
+  "reading"  = currently reading
+  "answer"   = ready to reveal
+  "next"     = ready for next question
+*/
+
 let state = "question";
 
-let lastSpeech = "";
+
+/*
+  Every time speech starts, this number changes.
+
+  This lets us cancel delayed speech reliably.
+*/
+
+let speechRun = 0;
 
 
 /* =========================================================
@@ -50,8 +66,30 @@ const answerDiv =
 const mainButton =
   document.getElementById("mainButton");
 
-const replayButton =
-  document.getElementById("replay");
+const interruptButton =
+  document.getElementById("interrupt");
+
+
+/* =========================================================
+   SPEECH SETTINGS
+   ========================================================= */
+
+/*
+  These control the pauses between sections.
+
+  Increase these if you want a slower,
+  more realistic Science Bowl reader.
+*/
+
+const PAUSES = {
+
+  betweenSections: 350,
+
+  beforeChoices: 700,
+
+  betweenChoices: 1000
+
+};
 
 
 /* =========================================================
@@ -68,22 +106,29 @@ function loadVoices() {
   const englishVoices =
     voices.filter(voice =>
       voice.lang &&
-      voice.lang.toLowerCase().startsWith("en")
+      voice.lang
+        .toLowerCase()
+        .startsWith("en")
     );
 
-  englishVoices.forEach((voice, index) => {
 
-    const option =
-      document.createElement("option");
+  englishVoices.forEach(
+    (voice, index) => {
 
-    option.value = index;
+      const option =
+        document.createElement("option");
 
-    option.textContent =
-      voice.name;
+      option.value = index;
 
-    voiceSelect.appendChild(option);
+      option.textContent =
+        voice.name;
 
-  });
+      voiceSelect.appendChild(
+        option
+      );
+
+    }
+  );
 
 }
 
@@ -95,6 +140,31 @@ loadVoices();
 
 
 /* =========================================================
+   GET SELECTED VOICE
+   ========================================================= */
+
+function getSelectedVoice() {
+
+  const voices =
+    speechSynthesis.getVoices();
+
+  const englishVoices =
+    voices.filter(voice =>
+      voice.lang &&
+      voice.lang
+        .toLowerCase()
+        .startsWith("en")
+    );
+
+
+  return englishVoices[
+    voiceSelect.selectedIndex
+  ];
+
+}
+
+
+/* =========================================================
    READ PDF
    ========================================================= */
 
@@ -103,12 +173,15 @@ async function readPDF(url) {
   info.textContent =
     "Loading PDF...";
 
+
   const pdf =
     await pdfjsLib
       .getDocument(url)
       .promise;
 
+
   let fullText = "";
+
 
   for (
     let pageNumber = 1;
@@ -119,18 +192,21 @@ async function readPDF(url) {
     info.textContent =
       `Reading packet... page ${pageNumber}/${pdf.numPages}`;
 
+
     const page =
       await pdf.getPage(pageNumber);
+
 
     const content =
       await page.getTextContent();
 
-    /*
-      PDF.js sometimes returns pieces of text
-      in weird visual order.
 
-      We use the y-coordinate to reconstruct
-      lines before joining them.
+    /*
+      PDF.js sometimes returns text
+      in strange visual order.
+
+      Reconstruct the lines using
+      their coordinates.
     */
 
     const items =
@@ -150,48 +226,42 @@ async function readPDF(url) {
         }));
 
 
-    items.sort((a, b) => {
-
-      if (
-        Math.abs(a.y - b.y) > 3
-      ) {
-
-        return b.y - a.y;
-
-      }
-
-      return a.x - b.x;
-
-    });
-
-
     const lines = [];
+
 
     for (const item of items) {
 
       let line =
         lines.find(existing =>
-          Math.abs(existing.y - item.y) < 3
+          Math.abs(
+            existing.y - item.y
+          ) < 3
         );
+
 
       if (!line) {
 
         line = {
+
           y: item.y,
+
           items: []
+
         };
 
         lines.push(line);
 
       }
 
+
       line.items.push(item);
 
     }
 
 
-    lines.sort((a, b) =>
-      b.y - a.y
+    lines.sort(
+      (a, b) =>
+        b.y - a.y
     );
 
 
@@ -199,8 +269,10 @@ async function readPDF(url) {
       lines.map(line => {
 
         line.items.sort(
-          (a, b) => a.x - b.x
+          (a, b) =>
+            a.x - b.x
         );
+
 
         return line.items
           .map(item => item.text)
@@ -229,11 +301,16 @@ function cleanText(text) {
 
   return text
 
-    .replace(/\s+/g, " ")
+    .replace(/\r/g, "")
 
     .replace(
       /High School Round \d+ Page \d+/gi,
       ""
+    )
+
+    .replace(
+      /\s+/g,
+      " "
     )
 
     .trim();
@@ -249,23 +326,45 @@ function extractAnswer(text) {
 
   const match =
     text.match(
-      /ANSWER\s*:\s*(.*?)(?=\s*(?:TOSS-UP|BONUS|\d+\)\s+[A-Z]))/i
+      /ANSWER\s*:\s*(.*)$/i
     );
+
 
   if (!match) {
 
-    const simple =
-      text.match(
-        /ANSWER\s*:\s*(.+)$/i
-      );
-
-    return simple
-      ? simple[1].trim()
-      : "";
+    return "";
 
   }
 
-  return match[1].trim();
+
+  let answer =
+    match[1].trim();
+
+
+  /*
+    Remove solution/explanation text.
+  */
+
+  answer =
+    answer.replace(
+      /\s*\(?Solution:.*$/i,
+      ""
+    );
+
+
+  /*
+    Remove ACCEPT information
+    from what gets displayed/read.
+  */
+
+  answer =
+    answer.replace(
+      /\s*\(ACCEPT:.*?\)/gi,
+      ""
+    );
+
+
+  return answer.trim();
 
 }
 
@@ -280,18 +379,17 @@ function parseQuestionBlock(
 ) {
 
   /*
-    Example from the packet:
+    Example:
 
-    TOSS-UP
-    1) BIOLOGY Multiple Choice
-    ...
-    ANSWER: W) BASIC
+    1) BIOLOGY Short Answer
+    question...
+    ANSWER: PHENOTYPE
   */
 
 
   const header =
     block.match(
-      /(\d+)\)\s*([A-Z][A-Z ]+?)\s+(Short Answer|Multiple Choice)\b/i
+      /(\d+)\)\s*(EARTH SCIENCE|GENERAL SCIENCE|BIOLOGY|CHEMISTRY|PHYSICS|ASTRONOMY|MATH)\s+(Short Answer|Multiple Choice)\b/i
     );
 
 
@@ -309,7 +407,6 @@ function parseQuestionBlock(
   const subject =
     header[2]
       .trim()
-      .replace(/\s+/g, " ")
       .toUpperCase();
 
 
@@ -317,14 +414,10 @@ function parseQuestionBlock(
     header[3];
 
 
-  /*
-    Everything after the format is
-    the actual question material.
-  */
-
   let body =
     block.substring(
-      header.index + header[0].length
+      header.index +
+      header[0].length
     );
 
 
@@ -333,7 +426,7 @@ function parseQuestionBlock(
 
 
   /*
-    Split question from answer.
+    Find ANSWER:
   */
 
   const answerIndex =
@@ -342,7 +435,7 @@ function parseQuestionBlock(
     );
 
 
-  let questionText;
+  let questionText = "";
 
   let answer = "";
 
@@ -350,18 +443,20 @@ function parseQuestionBlock(
   if (answerIndex >= 0) {
 
     questionText =
-      body.substring(
-        0,
-        answerIndex
-      ).trim();
+      body
+        .substring(
+          0,
+          answerIndex
+        )
+        .trim();
+
 
     answer =
-      body.substring(
-        answerIndex
+      extractAnswer(
+        body.substring(
+          answerIndex
+        )
       );
-
-    answer =
-      extractAnswer(answer);
 
   } else {
 
@@ -377,26 +472,13 @@ function parseQuestionBlock(
 
   questionText =
     questionText.replace(
-      /\s*\(Solution:.*$/i,
+      /\s*\(?Solution:.*$/i,
       ""
     );
 
 
   /*
-    Remove ACCEPT information
-    if it accidentally appears
-    in the question section.
-  */
-
-  questionText =
-    questionText.replace(
-      /\s*\(ACCEPT:.*?\)/gi,
-      ""
-    );
-
-
-  /*
-    Find multiple-choice answers.
+    Multiple-choice options.
   */
 
   const choices = {
@@ -418,11 +500,15 @@ function parseQuestionBlock(
     const choiceRegex =
       /(?:^|\s)([WXYZ])\)\s*(.*?)(?=\s+[WXYZ]\)\s|$)/gi;
 
+
     let match;
+
 
     while (
       (match =
-        choiceRegex.exec(questionText))
+        choiceRegex.exec(
+          questionText
+        ))
     ) {
 
       choices[
@@ -434,19 +520,16 @@ function parseQuestionBlock(
 
 
     /*
-      Remove choices from the
-      question text itself.
-
-      They remain stored separately
-      so the speech function can
-      read them cleanly.
+      Remove choices from the stem.
     */
 
     questionText =
-      questionText.replace(
-        /\s+[WXYZ]\)\s+.*?(?=\s+[WXYZ]\)\s|$)/gi,
-        ""
-      ).trim();
+      questionText
+        .replace(
+          /\s+[WXYZ]\)\s+.*?(?=\s+[WXYZ]\)\s|$)/gi,
+          ""
+        )
+        .trim();
 
   }
 
@@ -478,13 +561,8 @@ function parseQuestionBlock(
 
 function parseQuestions(text) {
 
-  /*
-    Normalize line breaks.
-  */
-
   text =
     text
-      .replace(/\r/g, "")
       .replace(
         /High School Round \d+ Page \d+/gi,
         ""
@@ -492,10 +570,9 @@ function parseQuestions(text) {
 
 
   /*
-    Find every TOSS-UP or BONUS.
+    Find TOSS-UP and BONUS markers.
 
-    This is much safer than looking
-    for arbitrary question numbers.
+    This keeps the packet's original order.
   */
 
   const markerRegex =
@@ -503,6 +580,7 @@ function parseQuestions(text) {
 
 
   const markers = [];
+
 
   let match;
 
@@ -554,10 +632,6 @@ function parseQuestions(text) {
         end
       );
 
-
-    /*
-      Remove the marker itself.
-    */
 
     block =
       block.replace(
@@ -618,7 +692,8 @@ async function loadPackets() {
       await response.json();
 
 
-    packetSelect.innerHTML = "";
+    packetSelect.innerHTML =
+      "";
 
 
     packets.forEach(
@@ -629,11 +704,14 @@ async function loadPackets() {
             "option"
           );
 
+
         option.value =
           index;
 
+
         option.textContent =
           packet.name;
+
 
         packetSelect.appendChild(
           option
@@ -662,20 +740,22 @@ async function loadPackets() {
 
 
 /* =========================================================
-   LOAD ONE PACKET
+   LOAD PACKET
    ========================================================= */
 
 async function loadPacket(index) {
 
   try {
 
-    speechSynthesis.cancel();
+    stopSpeech();
+
 
     current = 0;
 
     state = "question";
 
-    answerDiv.textContent = "";
+    answerDiv.textContent =
+      "";
 
 
     const text =
@@ -732,7 +812,7 @@ async function loadPacket(index) {
 
 
 /* =========================================================
-   SUBJECT DROPDOWN
+   SUBJECT LIST
    ========================================================= */
 
 function buildSubjectList() {
@@ -741,24 +821,29 @@ function buildSubjectList() {
     [
       ...new Set(
         allQuestions.map(
-          question =>
-            question.subject
+          q => q.subject
         )
       )
     ];
 
 
-  subjectSelect.innerHTML = "";
+  subjectSelect.innerHTML =
+    "";
+
 
   const allOption =
     document.createElement(
       "option"
     );
 
-  allOption.value = "all";
+
+  allOption.value =
+    "all";
+
 
   allOption.textContent =
     "All Subjects";
+
 
   subjectSelect.appendChild(
     allOption
@@ -773,11 +858,14 @@ function buildSubjectList() {
           "option"
         );
 
+
       option.value =
         subject;
 
+
       option.textContent =
         formatSubject(subject);
+
 
       subjectSelect.appendChild(
         option
@@ -810,8 +898,8 @@ function applySubjectFilter() {
 
     questions =
       allQuestions.filter(
-        question =>
-          question.subject ===
+        q =>
+          q.subject ===
           selected
       );
 
@@ -850,9 +938,10 @@ function formatSubject(subject) {
 
 function showQuestion() {
 
-  speechSynthesis.cancel();
+  stopSpeech();
 
-  answerDiv.textContent = "";
+  answerDiv.textContent =
+    "";
 
 
   if (
@@ -916,11 +1005,12 @@ function showQuestion() {
     `${current + 1} of ${questions.length}`;
 
 
+  state =
+    "question";
+
+
   mainButton.textContent =
     "🔊 READ QUESTION";
-
-
-  state = "question";
 
 }
 
@@ -947,10 +1037,25 @@ function renderChoices(q) {
 
     <div class="choices">
 
-      ${renderChoice("W", q.choices.W)}
-      ${renderChoice("X", q.choices.X)}
-      ${renderChoice("Y", q.choices.Y)}
-      ${renderChoice("Z", q.choices.Z)}
+      ${renderChoice(
+        "W",
+        q.choices.W
+      )}
+
+      ${renderChoice(
+        "X",
+        q.choices.X
+      )}
+
+      ${renderChoice(
+        "Y",
+        q.choices.Y
+      )}
+
+      ${renderChoice(
+        "Z",
+        q.choices.Z
+      )}
 
     </div>
 
@@ -959,7 +1064,10 @@ function renderChoices(q) {
 }
 
 
-function renderChoice(letter, text) {
+function renderChoice(
+  letter,
+  text
+) {
 
   if (!text) return "";
 
@@ -981,29 +1089,69 @@ function renderChoice(letter, text) {
 
 
 /* =========================================================
-   HTML ESCAPE
+   ESCAPE HTML
    ========================================================= */
 
 function escapeHTML(text) {
 
-  return text
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
+  return String(text)
+
+    .replace(
+      /&/g,
+      "&amp;"
+    )
+
+    .replace(
+      /</g,
+      "&lt;"
+    )
+
+    .replace(
+      />/g,
+      "&gt;"
+    )
+
+    .replace(
+      /"/g,
+      "&quot;"
+    )
+
+    .replace(
+      /'/g,
+      "&#039;"
+    );
 
 }
 
 
 /* =========================================================
-   SPEECH
+   STOP SPEECH
    ========================================================= */
 
-function speak(text) {
+function stopSpeech() {
+
+  /*
+    Invalidate any currently running
+    speech sequence.
+  */
+
+  speechRun++;
+
+
+  /*
+    Cancel the actual browser speech.
+  */
 
   speechSynthesis.cancel();
 
+}
+
+
+/* =========================================================
+   SPEAK ONE SECTION
+   ========================================================= */
+
+function createUtterance(text) {
 
   const utterance =
     new SpeechSynthesisUtterance(
@@ -1012,120 +1160,296 @@ function speak(text) {
 
 
   utterance.rate =
-    Number(speedSelect.value);
-
-
-  const voices =
-    speechSynthesis.getVoices();
-
-
-  const englishVoices =
-    voices.filter(
-      voice =>
-        voice.lang &&
-        voice.lang
-          .toLowerCase()
-          .startsWith("en")
+    Number(
+      speedSelect.value
     );
 
 
-  const selectedVoice =
-    englishVoices[
-      voiceSelect.selectedIndex
-    ];
+  const voice =
+    getSelectedVoice();
 
 
-  if (selectedVoice) {
+  if (voice) {
 
     utterance.voice =
-      selectedVoice;
+      voice;
 
   }
 
 
-  lastSpeech =
-    text;
-
-
-  speechSynthesis.speak(
-    utterance
-  );
+  return utterance;
 
 }
 
 
 /* =========================================================
-   READ CURRENT QUESTION
+   READ SCIENCE BOWL QUESTION
    ========================================================= */
 
-function readCurrentQuestion() {
+function speakScienceBowlQuestion(q) {
 
-  const q =
-    questions[current];
+  /*
+    Stop anything currently speaking.
+  */
 
-
-  if (!q) return;
-
-
-  let speech = "";
-
-
-  speech +=
-    `${formatSubject(q.subject)} `;
-
-
-  speech +=
-    `${q.type === "TOSS-UP"
-      ? "toss-up"
-      : "bonus"} `;
-
-
-  speech +=
-    `${q.number}. `;
-
-
-  speech +=
-    `${q.format}. `;
-
-
-  speech +=
-    q.text;
+  stopSpeech();
 
 
   /*
-    Read choices in order.
+    Create a new speech run.
+
+    If INTERRUPT is clicked,
+    this number changes and all
+    future chunks become invalid.
+  */
+
+  const thisRun =
+    speechRun;
+
+
+  state =
+    "reading";
+
+
+  mainButton.textContent =
+    "🔊 READING...";
+
+
+  /*
+    Build the question pieces.
+  */
+
+  const parts = [];
+
+
+  parts.push(
+    formatSubject(q.subject)
+  );
+
+
+  parts.push(
+    q.type === "TOSS-UP"
+      ? "toss-up"
+      : "bonus"
+  );
+
+
+  parts.push(
+    `${q.number}`
+  );
+
+
+  parts.push(
+    q.format
+  );
+
+
+  parts.push(
+    q.text
+  );
+
+
+  /*
+    Add choices separately.
   */
 
   if (q.choices.W) {
 
-    speech +=
-      ` W. ${q.choices.W}`;
+    parts.push(
+      `W. ${q.choices.W}`
+    );
 
   }
+
 
   if (q.choices.X) {
 
-    speech +=
-      ` X. ${q.choices.X}`;
+    parts.push(
+      `X. ${q.choices.X}`
+    );
 
   }
+
 
   if (q.choices.Y) {
 
-    speech +=
-      ` Y. ${q.choices.Y}`;
+    parts.push(
+      `Y. ${q.choices.Y}`
+    );
 
   }
+
 
   if (q.choices.Z) {
 
-    speech +=
-      ` Z. ${q.choices.Z}`;
+    parts.push(
+      `Z. ${q.choices.Z}`
+    );
 
   }
 
 
-  speak(speech);
+  let index = 0;
+
+
+  function speakNext() {
+
+    /*
+      INTERRUPT was clicked.
+    */
+
+    if (
+      thisRun !== speechRun
+    ) {
+
+      return;
+
+    }
+
+
+    /*
+      Everything has finished.
+    */
+
+    if (
+      index >= parts.length
+    ) {
+
+      state =
+        "answer";
+
+
+      mainButton.textContent =
+        "💗 REVEAL ANSWER";
+
+
+      return;
+
+    }
+
+
+    const currentPart =
+      parts[index];
+
+
+    const utterance =
+      createUtterance(
+        currentPart
+      );
+
+
+    utterance.onend = () => {
+
+      /*
+        Don't continue if
+        INTERRUPT was clicked.
+      */
+
+      if (
+        thisRun !== speechRun
+      ) {
+
+        return;
+
+      }
+
+
+      const previous =
+        parts[index];
+
+
+      const next =
+        parts[index + 1];
+
+
+      const previousIsChoice =
+        /^[WXYZ]\./i.test(
+          previous
+        );
+
+
+      const nextIsChoice =
+        next &&
+        /^[WXYZ]\./i.test(
+          next
+        );
+
+
+      let pause =
+        PAUSES.betweenSections;
+
+
+      /*
+        Longer pause before W.
+      */
+
+      if (
+        nextIsChoice &&
+        !previousIsChoice
+      ) {
+
+        pause =
+          PAUSES.beforeChoices;
+
+      }
+
+
+      /*
+        Longer pause between
+        W, X, Y, Z.
+      */
+
+      if (
+        previousIsChoice &&
+        nextIsChoice
+      ) {
+
+        pause =
+          PAUSES.betweenChoices;
+
+      }
+
+
+      index++;
+
+
+      setTimeout(
+        speakNext,
+        pause
+      );
+
+    };
+
+
+    utterance.onerror = () => {
+
+      if (
+        thisRun !== speechRun
+      ) {
+
+        return;
+
+      }
+
+
+      state =
+        "answer";
+
+
+      mainButton.textContent =
+        "💗 REVEAL ANSWER";
+
+    };
+
+
+    speechSynthesis.speak(
+      utterance
+    );
+
+  }
+
+
+  speakNext();
 
 }
 
@@ -1143,23 +1467,42 @@ function revealAnswer() {
   if (!q) return;
 
 
+  stopSpeech();
+
+
   if (!q.answer) {
 
     answerDiv.textContent =
       "Answer not detected.";
 
-    return;
+  } else {
+
+    answerDiv.textContent =
+      `Answer: ${q.answer}`;
+
+    /*
+      Read the answer aloud.
+    */
+
+    const utterance =
+      createUtterance(
+        `The answer is ${q.answer}`
+      );
+
+
+    speechSynthesis.speak(
+      utterance
+    );
 
   }
 
 
-  answerDiv.textContent =
-    `Answer: ${q.answer}`;
+  state =
+    "next";
 
 
-  speak(
-    `The answer is ${q.answer}`
-  );
+  mainButton.textContent =
+    "✨ NEXT QUESTION";
 
 }
 
@@ -1174,24 +1517,50 @@ mainButton.addEventListener(
 
     if (
       !questions.length
-    ) return;
-
-
-    if (
-      state === "question"
     ) {
-
-      readCurrentQuestion();
-
-      state = "answer";
-
-      mainButton.textContent =
-        "💗 REVEAL ANSWER";
 
       return;
 
     }
 
+
+    /*
+      READ QUESTION
+    */
+
+    if (
+      state === "question"
+    ) {
+
+      speakScienceBowlQuestion(
+        questions[current]
+      );
+
+      return;
+
+    }
+
+
+    /*
+      If currently reading,
+      clicking the main button
+      does nothing.
+
+      Use INTERRUPT instead.
+    */
+
+    if (
+      state === "reading"
+    ) {
+
+      return;
+
+    }
+
+
+    /*
+      REVEAL ANSWER
+    */
 
     if (
       state === "answer"
@@ -1199,15 +1568,14 @@ mainButton.addEventListener(
 
       revealAnswer();
 
-      state = "next";
-
-      mainButton.textContent =
-        "✨ NEXT QUESTION";
-
       return;
 
     }
 
+
+    /*
+      NEXT QUESTION
+    */
 
     if (
       state === "next"
@@ -1239,20 +1607,42 @@ mainButton.addEventListener(
 
 
 /* =========================================================
-   REPLAY
+   INTERRUPT BUTTON
    ========================================================= */
 
-replayButton.addEventListener(
+interruptButton.addEventListener(
   "click",
   () => {
 
-    if (lastSpeech) {
+    /*
+      Kill the current speech
+      AND invalidate any pending
+      delayed speech chunks.
+    */
 
-      speak(lastSpeech);
+    stopSpeech();
 
-    } else {
 
-      readCurrentQuestion();
+    /*
+      IMPORTANT:
+
+      Interrupt does NOT reveal
+      the answer.
+
+      If we were reading, go directly
+      to the reveal-answer state.
+    */
+
+    if (
+      state === "reading"
+    ) {
+
+      state =
+        "answer";
+
+
+      mainButton.textContent =
+        "💗 REVEAL ANSWER";
 
     }
 
