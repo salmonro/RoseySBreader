@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>SciBowl Reader 🎀</title>
+  <title>Rosey SciBowl Reader 🎀</title>
 
-  <!-- Cute fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
@@ -22,7 +20,6 @@
 <body>
 
 <header>
-
   <div class="brand">
     <div class="brand-title">SCI BOWL READER</div>
     <div class="brand-subtitle">♡ your cute little question reader ♡</div>
@@ -47,7 +44,6 @@
   <select id="voice">
     <option>Loading voices...</option>
   </select>
-
 </header>
 
 
@@ -68,24 +64,76 @@
   <div id="answer"></div>
 
   <div class="controls">
-
-    <button id="mainButton">
-      🔊 READ QUESTION
-    </button>
-
-    <button id="replay">
-      ↻ REPLAY
-    </button>
-
+    <button id="mainButton">🔊 READ QUESTION</button>
+    <button id="replay">↻ REPLAY</button>
   </div>
 
 </main>
 
+
+<!-- CONTACT FOOTER -->
+
+<footer class="site-footer">
+
+  <button id="contactButton" class="contact-link">
+    Contact
+  </button>
+
+  <div class="profile-circle">
+    <img src="/rosepfp.png" alt="Rose">
+  </div>
+
+</footer>
+
+
+<!-- CONTACT POPUP -->
+
+<div id="contactModal" class="contact-modal">
+
+  <div class="contact-box">
+
+    <button id="closeContact" class="close-contact">
+      ×
+    </button>
+
+    <div class="contact-title">
+      Contact ♡
+    </div>
+
+    <div class="contact-item">
+
+      <span>
+        Discord: @argi9
+      </span>
+
+      <button id="copyDiscord" class="copy-button">
+        copy
+      </button>
+
+    </div>
+
+    <div class="contact-item">
+
+      <span>
+        Email: tinosciencebowl@gmail.com
+      </span>
+
+    </div>
+
+    <div class="contact-heart">
+      ♡
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- PDF.JS -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
 <script src="app.js"></script>
 
 </body>
-
 </html>
