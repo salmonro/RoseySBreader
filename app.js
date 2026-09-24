@@ -82,19 +82,9 @@ const copyEmail =
 // ==============================
 
 const PAUSES = {
-
-  // Pause between major sections
-  betweenSections: 400,
-
-  // Pause before W/X/Y/Z
-  beforeChoices: 850,
-
-  // Pause between W/X/Y/Z
-  betweenChoices: 800,
-
-  // Small natural pause between spoken word chunks
-  betweenWords: 70
-
+  betweenSections: 500,
+  beforeChoices: 900,
+  betweenChoices: 1000
 };
 
 
@@ -918,6 +908,20 @@ function renderChoices(q) {
   const letters =
     ["W", "X", "Y", "Z"];
 
+for (const letter of letters) {
+  if (!q.choices[letter]) continue;
+
+  await naturalPause(PAUSES.betweenChoices, run);
+
+  const spokenLetter = letter.toLowerCase();
+
+  const ok = await speakNatural(
+    `${spokenLetter}. ${q.choices[letter]}`,
+    run
+  );
+
+  if (!ok) return false;
+}
 
   return `
 
@@ -1097,76 +1101,24 @@ function naturalPause(
 // SPEAK TEXT NATURALLY
 // ==============================
 
-async function speakNatural(
-  text,
-  run
-) {
+async function speakNatural(text, run) {
+  if (!text || run !== speechRun) return false;
 
-  if (
-    !text ||
-    run !== speechRun
-  ) {
+  const words = text.trim().split(/\s+/);
 
-    return false;
+  for (let i = 0; i < words.length; i++) {
+    if (run !== speechRun) return false;
 
-  }
+    const word = words[i];
 
-
-  /*
-    Split at natural punctuation first.
-    This makes the browser's voice pause
-    naturally instead of gliding through
-    the entire paragraph.
-  */
-
-  const chunks =
-    text.match(
-      /[^.!?;:]+[.!?;:]?|[^.!?;:]+$/g
-    ) || [text];
-
-
-  for (const chunk of chunks) {
-
-    const clean =
-      chunk.trim();
-
-
-    if (!clean) continue;
-
-
-    const ok =
-      await speakChunk(
-        clean,
-        run
-      );
-
-
+    const ok = await speakChunk(word, run);
     if (!ok) return false;
 
-
-    /*
-      Small extra pause after each
-      sentence/phrase.
-    */
-
-    const stillRunning =
-      await naturalPause(
-        PAUSES.betweenWords,
-        run
-      );
-
-
-    if (!stillRunning) {
-
-      return false;
-
-    }
-
+    const stillRunning = await naturalPause(120, run);
+    if (!stillRunning) return false;
   }
 
-
   return run === speechRun;
-
 }
 
 
