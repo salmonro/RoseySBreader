@@ -1,76 +1,339 @@
-```css
 * {
   box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  background: #10131a;
-  color: white;
-  font-family: Arial, sans-serif;
+  min-height: 100vh;
+
+  background:
+    radial-gradient(circle at 10% 10%, #ffd6e9 0, transparent 28%),
+    radial-gradient(circle at 90% 20%, #e4d9ff 0, transparent 30%),
+    linear-gradient(135deg, #fff5fa, #f8f3ff);
+
+  color: #3d3040;
+  font-family: Arial, Helvetica, sans-serif;
 }
 
+
+/* =========================
+   HEADER
+   ========================= */
+
 header {
-  background: #181d27;
-  padding: 18px;
+  padding: 18px 24px;
+
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+
+  background: rgba(255, 255, 255, 0.82);
+
+  border-bottom: 2px solid #f4c5dc;
+
+  box-shadow: 0 4px 20px rgba(190, 120, 160, 0.12);
+
+  backdrop-filter: blur(10px);
 }
 
 h1 {
+  margin: 0;
   margin-right: auto;
-  font-size: 22px;
+
+  color: #d95791;
+
+  font-size: 23px;
+  font-weight: 800;
+  letter-spacing: 1px;
 }
 
-select {
-  background: #252b36;
-  color: white;
-  border: 1px solid #444;
-  padding: 9px;
-  border-radius: 6px;
+h1::before {
+  content: "✦ ";
+  color: #b98de8;
 }
+
+
+/* =========================
+   DROPDOWNS
+   ========================= */
+
+select {
+  appearance: none;
+
+  background: #fff;
+
+  color: #60445b;
+
+  border: 2px solid #edc4dc;
+  border-radius: 12px;
+
+  padding: 9px 13px;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  outline: none;
+
+  box-shadow: 0 3px 10px rgba(200, 130, 170, 0.08);
+}
+
+select:hover {
+  border-color: #dc82ad;
+}
+
+select:focus {
+  border-color: #c994df;
+
+  box-shadow:
+    0 0 0 3px rgba(201, 148, 223, 0.18);
+}
+
+
+/* =========================
+   MAIN
+   ========================= */
 
 main {
   max-width: 1000px;
-  margin: 70px auto;
-  padding: 20px;
+
+  margin: 0 auto;
+
+  padding: 55px 25px 100px;
+
   text-align: center;
 }
 
+
+/* =========================
+   INFO
+   ========================= */
+
 #info {
-  color: #999;
-  margin-bottom: 35px;
+  color: #a47b99;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  margin-bottom: 25px;
 }
+
+
+/* =========================
+   QUESTION CARD
+   ========================= */
 
 #question {
+  max-width: 900px;
+
+  min-height: 260px;
+
+  margin: 0 auto;
+
+  padding: 42px 45px;
+
+  background: rgba(255, 255, 255, 0.86);
+
+  border: 2px solid #f0c9df;
+
+  border-radius: 24px;
+
+  box-shadow:
+    0 10px 35px rgba(190, 120, 160, 0.13),
+    0 2px 8px rgba(190, 120, 160, 0.08);
+
   font-size: 27px;
-  line-height: 1.55;
-  min-height: 250px;
+  line-height: 1.6;
+
+  color: #423342;
 }
 
+#question strong {
+  color: #d95791;
+
+  font-size: 18px;
+}
+
+
+/* =========================
+   ANSWER
+   ========================= */
+
 #answer {
-  font-size: 25px;
-  color: #7ee787;
   min-height: 45px;
-  margin: 20px;
+
+  margin: 24px 0;
+
+  color: #b35bc5;
+
+  font-size: 25px;
+  font-weight: 800;
+
+  text-shadow:
+    0 2px 8px rgba(179, 91, 197, 0.18);
+}
+
+
+/* =========================
+   BUTTONS
+   ========================= */
+
+.controls {
+  margin-top: 28px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  gap: 12px;
+
+  flex-wrap: wrap;
 }
 
 button {
-  font-size: 20px;
-  padding: 17px 30px;
-  margin: 8px;
   border: none;
-  border-radius: 8px;
-  cursor: pointer;
-}
+  border-radius: 14px;
 
-#mainButton {
-  min-width: 260px;
+  padding: 15px 25px;
+
+  font-size: 17px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  color: #69445f;
+
+  background: #fff;
+
+  border: 2px solid #edc7dc;
+
+  box-shadow:
+    0 5px 15px rgba(190, 120, 160, 0.10);
+
+  transition:
+    transform 0.12s,
+    box-shadow 0.15s,
+    background 0.15s;
 }
 
 button:hover {
-  opacity: 0.85;
+  background: #fff5fa;
+
+  box-shadow:
+    0 7px 20px rgba(190, 120, 160, 0.17);
+
+  transform: translateY(-1px);
 }
-```
+
+button:active {
+  transform: scale(0.97);
+}
+
+
+/* =========================
+   MAIN BUTTON
+   ========================= */
+
+#mainButton {
+  min-width: 285px;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      135deg,
+      #ed82b4,
+      #c98add
+    );
+
+  border: none;
+
+  font-size: 19px;
+
+  box-shadow:
+    0 7px 22px rgba(205, 112, 166, 0.25);
+}
+
+#mainButton:hover {
+  background:
+    linear-gradient(
+      135deg,
+      #f193c0,
+      #d29ae3
+    );
+
+  box-shadow:
+    0 9px 27px rgba(205, 112, 166, 0.32);
+}
+
+
+/* =========================
+   REPLAY
+   ========================= */
+
+#replay {
+  min-width: 135px;
+}
+
+
+/* =========================
+   CUTE DECORATION
+   ========================= */
+
+main::before {
+  content: "୨୧  ✦  ♡  ✦  ୨୧";
+
+  display: block;
+
+  margin-bottom: 18px;
+
+  color: #d987b1;
+
+  font-size: 20px;
+
+  letter-spacing: 5px;
+}
+
+
+/* =========================
+   MOBILE
+   ========================= */
+
+@media (max-width: 700px) {
+
+  header {
+    padding: 15px;
+  }
+
+  h1 {
+    width: 100%;
+    margin-bottom: 4px;
+  }
+
+  select {
+    flex: 1;
+  }
+
+  main {
+    padding: 35px 15px 70px;
+  }
+
+  #question {
+    padding: 30px 20px;
+
+    font-size: 21px;
+
+    border-radius: 20px;
+  }
+
+  #answer {
+    font-size: 21px;
+  }
+
+  #mainButton,
+  #replay {
+    width: 100%;
+  }
+}
