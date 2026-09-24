@@ -13,50 +13,104 @@ let state = "question";
 let speechRun = 0;
 
 
-const packetSelect = document.getElementById("packet");
-const subjectSelect = document.getElementById("subject");
-const speedSelect = document.getElementById("speed");
-const voiceSelect = document.getElementById("voice");
+// ==============================
+// ELEMENTS
+// ==============================
 
-const info = document.getElementById("info");
-const questionDiv = document.getElementById("question");
-const answerDiv = document.getElementById("answer");
+const packetSelect =
+  document.getElementById("packet");
 
-const mainButton = document.getElementById("mainButton");
-const replayButton = document.getElementById("replay");
+const subjectSelect =
+  document.getElementById("subject");
 
+const speedSelect =
+  document.getElementById("speed");
+
+const voiceSelect =
+  document.getElementById("voice");
+
+const info =
+  document.getElementById("info");
+
+const questionDiv =
+  document.getElementById("question");
+
+const answerDiv =
+  document.getElementById("answer");
+
+const mainButton =
+  document.getElementById("mainButton");
+
+const replayButton =
+  document.getElementById("replay");
+
+
+// ==============================
+// CONTACT ELEMENTS
+// ==============================
+
+const contactButton =
+  document.getElementById("contactButton");
+
+const contactModal =
+  document.getElementById("contactModal");
+
+const closeContact =
+  document.getElementById("closeContact");
+
+const copyDiscord =
+  document.getElementById("copyDiscord");
+
+const copyEmail =
+  document.getElementById("copyEmail");
+
+
+// ==============================
+// SPEECH PAUSES
+// ==============================
 
 const PAUSES = {
+
   betweenSections: 400,
+
   beforeChoices: 850,
+
   betweenChoices: 1200
+
 };
 
 
-/* ─────────────────────────────
-   VOICES
-───────────────────────────── */
+// ==============================
+// VOICES
+// ==============================
 
 function loadVoices() {
 
-  const voices = speechSynthesis.getVoices();
+  const voices =
+    speechSynthesis.getVoices();
 
   voiceSelect.innerHTML = "";
 
+
   if (!voices.length) {
 
-    const option = document.createElement("option");
+    const option =
+      document.createElement("option");
 
-    option.textContent = "Default voice";
+    option.textContent =
+      "Default voice";
 
     voiceSelect.appendChild(option);
 
     return;
+
   }
+
 
   voices.forEach((voice, index) => {
 
-    const option = document.createElement("option");
+    const option =
+      document.createElement("option");
 
     option.value = index;
 
@@ -66,37 +120,51 @@ function loadVoices() {
     voiceSelect.appendChild(option);
 
   });
+
 }
 
 
-speechSynthesis.onvoiceschanged = loadVoices;
+speechSynthesis.onvoiceschanged =
+  loadVoices;
 
 loadVoices();
 
 
 function getSelectedVoice() {
 
-  const voices = speechSynthesis.getVoices();
+  const voices =
+    speechSynthesis.getVoices();
 
-  const index = Number(voiceSelect.value);
+  const index =
+    Number(voiceSelect.value);
 
-  return voices[index] || voices[0] || null;
+  return (
+    voices[index] ||
+    voices[0] ||
+    null
+  );
+
 }
 
 
-/* ─────────────────────────────
-   PDF READER
-───────────────────────────── */
+// ==============================
+// READ PDF
+// ==============================
 
 async function readPDF(url) {
 
-  info.textContent = "Loading PDF...";
+  info.textContent =
+    "Loading PDF...";
 
-  const pdf = await pdfjsLib
-    .getDocument(url)
-    .promise;
+
+  const pdf =
+    await pdfjsLib
+      .getDocument(url)
+      .promise;
+
 
   let fullText = "";
+
 
   for (
     let pageNumber = 1;
@@ -107,20 +175,33 @@ async function readPDF(url) {
     info.textContent =
       `Reading packet... page ${pageNumber}/${pdf.numPages}`;
 
+
     const page =
       await pdf.getPage(pageNumber);
+
 
     const content =
       await page.getTextContent();
 
 
-    const items = content.items
-      .filter(item => item.str && item.str.trim())
-      .map(item => ({
-        text: item.str.trim(),
-        x: item.transform[4],
-        y: item.transform[5]
-      }));
+    const items =
+      content.items
+
+        .filter(
+          item =>
+            item.str &&
+            item.str.trim()
+        )
+
+        .map(item => ({
+
+          text: item.str.trim(),
+
+          x: item.transform[4],
+
+          y: item.transform[5]
+
+        }));
 
 
     const lines = [];
@@ -129,123 +210,124 @@ async function readPDF(url) {
     for (const item of items) {
 
       let line =
-        lines.find(existing =>
-          Math.abs(existing.y - item.y) < 3
+        lines.find(
+          existing =>
+            Math.abs(
+              existing.y - item.y
+            ) < 3
         );
 
 
       if (!line) {
 
         line = {
+
           y: item.y,
+
           items: []
+
         };
 
         lines.push(line);
+
       }
 
 
       line.items.push(item);
+
     }
 
 
-    lines.sort((a, b) =>
-      b.y - a.y
+    lines.sort(
+      (a, b) => b.y - a.y
     );
 
 
     const pageLines =
       lines.map(line => {
 
-        line.items.sort((a, b) =>
-          a.x - b.x
+        line.items.sort(
+          (a, b) => a.x - b.x
         );
+
 
         return line.items
           .map(item => item.text)
           .join(" ");
+
       });
 
 
     fullText +=
       "\n" +
       pageLines.join("\n");
+
   }
 
 
   return fullText;
+
 }
 
 
-/* ─────────────────────────────
-   TEXT CLEANING
-───────────────────────────── */
+// ==============================
+// PARSE QUESTION
+// ==============================
 
-function cleanText(text) {
+function parseQuestionBlock(
+  block,
+  type
+) {
 
-  return text
-    .replace(/\r/g, "")
-    .replace(
-      /High School Round \d+ Page \d+/gi,
-      ""
-    )
-    .replace(/\s+/g, " ")
-    .trim();
-}
+  const header =
+    block.match(
+      /(\d+)\)\s*(EARTH SCIENCE|GENERAL SCIENCE|BIOLOGY|CHEMISTRY|PHYSICS|ASTRONOMY|MATH)\s+(Short Answer|Multiple Choice)\b/i
+    );
 
 
-/* ─────────────────────────────
-   PARSE QUESTION
-───────────────────────────── */
-
-function parseQuestionBlock(block, type) {
-
-  const header = block.match(
-    /(\d+)\)\s*(EARTH SCIENCE|GENERAL SCIENCE|BIOLOGY|CHEMISTRY|PHYSICS|ASTRONOMY|MATH)\s+(Short Answer|Multiple Choice)\b/i
-  );
-
-
-  if (!header) {
-    return null;
-  }
+  if (!header) return null;
 
 
   const number =
     Number(header[1]);
+
 
   const subject =
     header[2]
       .trim()
       .toUpperCase();
 
+
   const format =
     header[3];
 
 
   let body =
-    block.substring(
-      header.index + header[0].length
-    );
+    block
+      .substring(
+        header.index +
+        header[0].length
+      )
 
+      .replace(/\r/g, "")
 
-  body = body
-    .replace(/\r/g, "")
-    .replace(
-      /High School Round \d+ Page \d+/gi,
-      ""
-    );
+      .replace(
+        /High School Round \d+ Page \d+/gi,
+        ""
+      );
 
 
   const lines =
     body
       .split("\n")
-      .map(line => line.trim())
+      .map(s => s.trim())
       .filter(Boolean);
 
 
   const answerIndex =
-    lines.findIndex(line =>
-      /^ANSWER\s*:/i.test(line)
+    lines.findIndex(
+      line =>
+        /^ANSWER\s*:/i.test(line)
     );
 
 
@@ -259,17 +341,28 @@ function parseQuestionBlock(block, type) {
     answerIndex >= 0
       ? [
           lines[answerIndex]
-            .replace(/^ANSWER\s*:\s*/i, ""),
-          ...lines.slice(answerIndex + 1)
+            .replace(
+              /^ANSWER\s*:\s*/i,
+              ""
+            ),
+
+          ...lines.slice(
+            answerIndex + 1
+          )
         ]
       : [];
 
 
   const choices = {
+
     W: "",
+
     X: "",
+
     Y: "",
+
     Z: ""
+
   };
 
 
@@ -278,24 +371,25 @@ function parseQuestionBlock(block, type) {
 
   for (const line of questionLines) {
 
-    const choiceMatch =
+    const match =
       line.match(
         /^([WXYZ])\)\s*(.*)$/i
       );
 
 
-    if (choiceMatch) {
+    if (match) {
 
       choices[
-        choiceMatch[1].toUpperCase()
+        match[1].toUpperCase()
       ] =
-        choiceMatch[2].trim();
+        match[2].trim();
 
     } else {
 
       stemLines.push(line);
 
     }
+
   }
 
 
@@ -304,11 +398,17 @@ function parseQuestionBlock(block, type) {
 
   for (const line of answerLines) {
 
-    if (/^\(?Solution\b/i.test(line)) {
+    if (
+      /^\(?Solution\b/i.test(line)
+    ) {
+
       break;
+
     }
 
+
     answerParts.push(line);
+
   }
 
 
@@ -325,18 +425,19 @@ function parseQuestionBlock(block, type) {
       .includes("multiple")
   ) {
 
-    const answerMatch =
+    const match =
       answer.match(
         /^([WXYZ])\)\s*(.*)$/i
       );
 
 
-    if (answerMatch) {
+    if (match) {
 
       answer =
-        `${answerMatch[1].toUpperCase()}) ${answerMatch[2].trim()}`;
+        `${match[1].toUpperCase()}) ${match[2].trim()}`;
 
     }
+
   }
 
 
@@ -370,12 +471,13 @@ function parseQuestionBlock(block, type) {
     answer
 
   };
+
 }
 
 
-/* ─────────────────────────────
-   PARSE ALL QUESTIONS
-───────────────────────────── */
+// ==============================
+// PARSE ALL QUESTIONS
+// ==============================
 
 function parseQuestions(text) {
 
@@ -395,6 +497,7 @@ function parseQuestions(text) {
 
   const results = [];
 
+
   let currentType = null;
 
   let currentBlock = [];
@@ -402,8 +505,13 @@ function parseQuestions(text) {
 
   function finishBlock() {
 
-    if (!currentType || !currentBlock.length) {
+    if (
+      !currentType ||
+      !currentBlock.length
+    ) {
+
       return;
+
     }
 
 
@@ -419,38 +527,54 @@ function parseQuestions(text) {
 
 
     if (question) {
+
       results.push(question);
+
     }
+
   }
 
 
   for (const line of lines) {
 
-    if (/^TOSS-UP$/i.test(line)) {
+    if (
+      /^TOSS-UP$/i.test(line)
+    ) {
 
       finishBlock();
 
-      currentType = "TOSS-UP";
+      currentType =
+        "TOSS-UP";
+
       currentBlock = [];
 
       continue;
+
     }
 
 
-    if (/^BONUS$/i.test(line)) {
+    if (
+      /^BONUS$/i.test(line)
+    ) {
 
       finishBlock();
 
-      currentType = "BONUS";
+      currentType =
+        "BONUS";
+
       currentBlock = [];
 
       continue;
+
     }
 
 
     if (currentType) {
+
       currentBlock.push(line);
+
     }
+
   }
 
 
@@ -458,12 +582,13 @@ function parseQuestions(text) {
 
 
   return results;
+
 }
 
 
-/* ─────────────────────────────
-   PACKETS
-───────────────────────────── */
+// ==============================
+// LOAD PACKETS.JSON
+// ==============================
 
 async function loadPackets() {
 
@@ -474,9 +599,11 @@ async function loadPackets() {
 
 
     if (!response.ok) {
+
       throw new Error(
         "Could not load packets.json"
       );
+
     }
 
 
@@ -484,28 +611,40 @@ async function loadPackets() {
       await response.json();
 
 
-    packetSelect.innerHTML = "";
+    packetSelect.innerHTML =
+      "";
 
 
-    packets.forEach((packet, index) => {
+    packets.forEach(
+      (packet, index) => {
 
-      const option =
-        document.createElement("option");
+        const option =
+          document.createElement(
+            "option"
+          );
 
-      option.value = index;
 
-      option.textContent =
-        packet.name;
+        option.value =
+          index;
 
-      packetSelect.appendChild(option);
 
-    });
+        option.textContent =
+          packet.name;
+
+
+        packetSelect.appendChild(
+          option
+        );
+
+      }
+    );
 
 
     if (packets.length) {
-      await loadPacket(0);
-    }
 
+      await loadPacket(0);
+
+    }
 
   } catch (error) {
 
@@ -515,12 +654,13 @@ async function loadPackets() {
       "Could not load packets.";
 
   }
+
 }
 
 
-/* ─────────────────────────────
-   LOAD PACKET
-───────────────────────────── */
+// ==============================
+// LOAD A PACKET
+// ==============================
 
 async function loadPacket(index) {
 
@@ -531,9 +671,7 @@ async function loadPacket(index) {
     packets[index];
 
 
-  if (!packet) {
-    return;
-  }
+  if (!packet) return;
 
 
   try {
@@ -543,7 +681,9 @@ async function loadPacket(index) {
 
 
     const text =
-      await readPDF(packet.file);
+      await readPDF(
+        packet.file
+      );
 
 
     allQuestions =
@@ -558,7 +698,6 @@ async function loadPacket(index) {
 
     applySubjectFilter();
 
-
   } catch (error) {
 
     console.error(error);
@@ -567,19 +706,24 @@ async function loadPacket(index) {
       "Could not load this packet.";
 
   }
+
 }
 
 
-/* ─────────────────────────────
-   SUBJECT FILTER
-───────────────────────────── */
+// ==============================
+// SUBJECT LIST
+// ==============================
 
 function buildSubjectList() {
 
   const subjects =
-    [...new Set(
-      allQuestions.map(q => q.subject)
-    )];
+    [
+      ...new Set(
+        allQuestions.map(
+          q => q.subject
+        )
+      )
+    ];
 
 
   subjectSelect.innerHTML =
@@ -589,21 +733,31 @@ function buildSubjectList() {
   subjects.forEach(subject => {
 
     const option =
-      document.createElement("option");
+      document.createElement(
+        "option"
+      );
 
-    option.value = subject;
 
-    option.textContent = subject;
+    option.value =
+      subject;
 
-    subjectSelect.appendChild(option);
+
+    option.textContent =
+      subject;
+
+
+    subjectSelect.appendChild(
+      option
+    );
 
   });
+
 }
 
 
-/* ─────────────────────────────
-   APPLY FILTER
-───────────────────────────── */
+// ==============================
+// FILTER
+// ==============================
 
 function applySubjectFilter() {
 
@@ -611,38 +765,39 @@ function applySubjectFilter() {
     subjectSelect.value;
 
 
-  if (selected === "all") {
+  questions =
+    selected === "all"
 
-    questions =
-      [...allQuestions];
+      ? [...allQuestions]
 
-  } else {
-
-    questions =
-      allQuestions.filter(
-        q => q.subject === selected
-      );
-
-  }
+      : allQuestions.filter(
+          q =>
+            q.subject === selected
+        );
 
 
   current = 0;
 
+
   showQuestion();
+
 }
 
 
-/* ─────────────────────────────
-   SHOW QUESTION
-───────────────────────────── */
+// ==============================
+// DISPLAY QUESTION
+// ==============================
 
 function showQuestion() {
 
   stopSpeech();
 
+
   answerDiv.innerHTML = "";
 
-  state = "question";
+
+  state =
+    "question";
 
 
   if (!questions.length) {
@@ -650,36 +805,50 @@ function showQuestion() {
     info.textContent =
       "No questions found.";
 
-    questionDiv.innerHTML = "";
+    questionDiv.innerHTML =
+      "";
+
 
     mainButton.textContent =
       "🔊 READ QUESTION";
 
+
     return;
+
   }
 
 
-  if (current >= questions.length) {
+  if (
+    current >= questions.length
+  ) {
 
     info.textContent =
       "🎀 PACKET COMPLETE";
 
-    questionDiv.innerHTML = `
-      <div class="complete-message">
-        ✦ Packet Complete ✦
-      </div>
-    `;
+
+    questionDiv.innerHTML =
+      `
+        <div class="complete-message">
+          ✦ Packet Complete ✦
+        </div>
+      `;
+
 
     mainButton.textContent =
       "🎀 COMPLETE";
 
-    mainButton.disabled = true;
+
+    mainButton.disabled =
+      true;
+
 
     return;
+
   }
 
 
-  mainButton.disabled = false;
+  mainButton.disabled =
+    false;
 
 
   const q =
@@ -690,33 +859,35 @@ function showQuestion() {
     `Question ${current + 1} of ${questions.length}`;
 
 
-  questionDiv.innerHTML = `
+  questionDiv.innerHTML =
+    `
 
-    <div class="question-label">
-      ${q.subject} · ${q.type} ${q.number}
-    </div>
+      <div class="question-label">
+        ${q.subject} · ${q.type} ${q.number}
+      </div>
 
-    <div class="question-format">
-      ${q.format}
-    </div>
+      <div class="question-format">
+        ${q.format}
+      </div>
 
-    <div class="question-text">
-      ${escapeHTML(q.text)}
-    </div>
+      <div class="question-text">
+        ${escapeHTML(q.text)}
+      </div>
 
-    ${renderChoices(q)}
+      ${renderChoices(q)}
 
-  `;
+    `;
 
 
   mainButton.textContent =
     "🔊 READ QUESTION";
+
 }
 
 
-/* ─────────────────────────────
-   CHOICES
-───────────────────────────── */
+// ==============================
+// RENDER CHOICES
+// ==============================
 
 function renderChoices(q) {
 
@@ -727,6 +898,7 @@ function renderChoices(q) {
   ) {
 
     return "";
+
   }
 
 
@@ -747,7 +919,9 @@ function renderChoices(q) {
           </span>
 
           <span class="choice-text">
-            ${escapeHTML(q.choices[letter])}
+            ${escapeHTML(
+              q.choices[letter]
+            )}
           </span>
 
         </div>
@@ -757,28 +931,34 @@ function renderChoices(q) {
     </div>
 
   `;
+
 }
 
 
-/* ─────────────────────────────
-   ESCAPE HTML
-───────────────────────────── */
+// ==============================
+// ESCAPE HTML
+// ==============================
 
 function escapeHTML(text) {
 
   const div =
-    document.createElement("div");
+    document.createElement(
+      "div"
+    );
+
 
   div.textContent =
     text || "";
 
+
   return div.innerHTML;
+
 }
 
 
-/* ─────────────────────────────
-   SPEECH
-───────────────────────────── */
+// ==============================
+// STOP SPEECH
+// ==============================
 
 function stopSpeech() {
 
@@ -786,11 +966,15 @@ function stopSpeech() {
 
   speechSynthesis.cancel();
 
-  state = "question";
+  state =
+    "question";
+
 }
 
 
-/* Wait helper */
+// ==============================
+// WAIT
+// ==============================
 
 function wait(ms, run) {
 
@@ -798,40 +982,62 @@ function wait(ms, run) {
 
     setTimeout(() => {
 
-      if (run !== speechRun) {
+      if (
+        run !== speechRun
+      ) {
+
         resolve(false);
+
         return;
+
       }
+
 
       resolve(true);
 
     }, ms);
 
   });
+
 }
 
 
-/* Speak one chunk */
+// ==============================
+// SPEAK ONE CHUNK
+// ==============================
 
-function speakChunk(text, run) {
+function speakChunk(
+  text,
+  run
+) {
 
   return new Promise(resolve => {
 
-    if (run !== speechRun) {
+    if (
+      run !== speechRun
+    ) {
+
       resolve(false);
+
       return;
+
     }
 
 
     const utterance =
-      new SpeechSynthesisUtterance(text);
+      new SpeechSynthesisUtterance(
+        text
+      );
 
 
     utterance.rate =
-      Number(speedSelect.value);
+      Number(
+        speedSelect.value
+      );
 
 
-    utterance.pitch = 1;
+    utterance.pitch =
+      1;
 
 
     const voice =
@@ -839,24 +1045,29 @@ function speakChunk(text, run) {
 
 
     if (voice) {
-      utterance.voice = voice;
+
+      utterance.voice =
+        voice;
+
     }
 
 
-    utterance.onend = () => {
+    utterance.onend =
+      () => {
 
-      resolve(
-        run === speechRun
-      );
+        resolve(
+          run === speechRun
+        );
 
-    };
+      };
 
 
-    utterance.onerror = () => {
+    utterance.onerror =
+      () => {
 
-      resolve(false);
+        resolve(false);
 
-    };
+      };
 
 
     speechSynthesis.speak(
@@ -864,12 +1075,13 @@ function speakChunk(text, run) {
     );
 
   });
+
 }
 
 
-/* ─────────────────────────────
-   READ SCIENCE BOWL QUESTION
-───────────────────────────── */
+// ==============================
+// READ SCIENCE BOWL QUESTION
+// ==============================
 
 async function speakScienceBowlQuestion(q) {
 
@@ -880,37 +1092,100 @@ async function speakScienceBowlQuestion(q) {
     speechRun;
 
 
-  state = "reading";
+  state =
+    "reading";
 
 
   mainButton.textContent =
     "⏹ INTERRUPT";
 
 
-  const chunks = [];
+  // SUBJECT
+
+  let ok =
+    await speakChunk(
+      q.subject,
+      run
+    );
 
 
-  chunks.push(
-    q.subject
-  );
+  if (!ok) return;
 
 
-  chunks.push(
-    q.type === "TOSS-UP"
-      ? `Toss-up ${q.number}`
-      : `Bonus ${q.number}`
-  );
+  ok =
+    await wait(
+      PAUSES.betweenSections,
+      run
+    );
 
 
-  chunks.push(
-    q.format
-  );
+  if (!ok) return;
 
 
-  chunks.push(
-    q.text
-  );
+  // TOSS-UP / BONUS
 
+  ok =
+    await speakChunk(
+
+      q.type === "TOSS-UP"
+
+        ? `Toss-up ${q.number}`
+
+        : `Bonus ${q.number}`,
+
+      run
+
+    );
+
+
+  if (!ok) return;
+
+
+  ok =
+    await wait(
+      PAUSES.betweenSections,
+      run
+    );
+
+
+  if (!ok) return;
+
+
+  // FORMAT
+
+  ok =
+    await speakChunk(
+      q.format,
+      run
+    );
+
+
+  if (!ok) return;
+
+
+  ok =
+    await wait(
+      PAUSES.betweenSections,
+      run
+    );
+
+
+  if (!ok) return;
+
+
+  // QUESTION TEXT
+
+  ok =
+    await speakChunk(
+      q.text,
+      run
+    );
+
+
+  if (!ok) return;
+
+
+  // MULTIPLE CHOICE OPTIONS
 
   const isMultipleChoice =
     q.format
@@ -920,15 +1195,14 @@ async function speakScienceBowlQuestion(q) {
 
   if (isMultipleChoice) {
 
-    await wait(
-      PAUSES.beforeChoices,
-      run
-    );
+    ok =
+      await wait(
+        PAUSES.beforeChoices,
+        run
+      );
 
 
-    if (run !== speechRun) {
-      return;
-    }
+    if (!ok) return;
 
 
     const letters =
@@ -949,91 +1223,61 @@ async function speakScienceBowlQuestion(q) {
         q.choices[letter];
 
 
-      if (!choice) {
-        continue;
-      }
+      if (!choice) continue;
 
 
-      const ok =
+      ok =
         await speakChunk(
           `${letter}. ${choice}`,
           run
         );
 
 
-      if (!ok) {
-        return;
-      }
+      if (!ok) return;
 
 
-      if (i < letters.length - 1) {
+      if (
+        i < letters.length - 1
+      ) {
 
-        const stillOkay =
+        ok =
           await wait(
             PAUSES.betweenChoices,
             run
           );
 
 
-        if (!stillOkay) {
-          return;
-        }
+        if (!ok) return;
+
       }
+
     }
 
-
-  } else {
-
-    for (
-      let i = 0;
-      i < chunks.length;
-      i++
-    ) {
-
-      const ok =
-        await speakChunk(
-          chunks[i],
-          run
-        );
-
-
-      if (!ok) {
-        return;
-      }
-
-
-      if (i < chunks.length - 1) {
-
-        const stillOkay =
-          await wait(
-            PAUSES.betweenSections,
-            run
-          );
-
-
-        if (!stillOkay) {
-          return;
-        }
-      }
-    }
   }
 
 
-  if (run !== speechRun) {
+  if (
+    run !== speechRun
+  ) {
+
     return;
+
   }
 
 
-  state = "answer";
+  state =
+    "answer";
+
 
   mainButton.textContent =
     "💗 REVEAL ANSWER";
+
 }
 
 
-/* ─────────────────────────────
-   REVEAL ANSWER
-───────────────────────────── */
+// ==============================
+// REVEAL ANSWER
+// ==============================
 
 async function revealAnswer() {
 
@@ -1041,29 +1285,29 @@ async function revealAnswer() {
     questions[current];
 
 
-  if (!q) {
-    return;
-  }
+  if (!q) return;
 
 
-  state = "revealing";
+  state =
+    "revealing";
 
 
-  answerDiv.innerHTML = `
+  answerDiv.innerHTML =
+    `
 
-    <div class="answer-card">
+      <div class="answer-card">
 
-      <span class="answer-label">
-        ANSWER
-      </span>
+        <span class="answer-label">
+          ANSWER
+        </span>
 
-      <span class="answer-text">
-        ${escapeHTML(q.answer)}
-      </span>
+        <span class="answer-text">
+          ${escapeHTML(q.answer)}
+        </span>
 
-    </div>
+      </div>
 
-  `;
+    `;
 
 
   mainButton.textContent =
@@ -1082,7 +1326,9 @@ async function revealAnswer() {
 
 
   utterance.rate =
-    Number(speedSelect.value);
+    Number(
+      speedSelect.value
+    );
 
 
   const voice =
@@ -1090,7 +1336,10 @@ async function revealAnswer() {
 
 
   if (voice) {
-    utterance.voice = voice;
+
+    utterance.voice =
+      voice;
+
   }
 
 
@@ -1099,78 +1348,100 @@ async function revealAnswer() {
   );
 
 
-  state = "next";
+  state =
+    "next";
+
 }
 
 
-/* ─────────────────────────────
-   MAIN BUTTON
-───────────────────────────── */
+// ==============================
+// MAIN BUTTON
+// ==============================
 
 mainButton.addEventListener(
   "click",
   () => {
 
-    if (!questions.length) {
-      return;
-    }
+    if (!questions.length) return;
 
 
-    if (state === "question") {
+    // READ QUESTION
+
+    if (
+      state === "question"
+    ) {
 
       speakScienceBowlQuestion(
         questions[current]
       );
 
       return;
+
     }
 
 
-    if (state === "reading") {
+    // INTERRUPT
+
+    if (
+      state === "reading"
+    ) {
 
       stopSpeech();
 
-      state = "answer";
+
+      state =
+        "answer";
+
 
       mainButton.textContent =
         "💗 REVEAL ANSWER";
 
+
       return;
+
     }
 
 
-    if (state === "answer") {
+    // REVEAL ANSWER
+
+    if (
+      state === "answer"
+    ) {
 
       revealAnswer();
 
       return;
+
     }
 
 
-    if (state === "next") {
+    // NEXT QUESTION
+
+    if (
+      state === "next"
+    ) {
 
       current++;
 
       showQuestion();
 
       return;
+
     }
 
   }
 );
 
 
-/* ─────────────────────────────
-   REPLAY
-───────────────────────────── */
+// ==============================
+// REPLAY
+// ==============================
 
 replayButton.addEventListener(
   "click",
   () => {
 
-    if (!questions.length) {
-      return;
-    }
+    if (!questions.length) return;
 
 
     speakScienceBowlQuestion(
@@ -1181,25 +1452,27 @@ replayButton.addEventListener(
 );
 
 
-/* ─────────────────────────────
-   PACKET CHANGE
-───────────────────────────── */
+// ==============================
+// PACKET CHANGE
+// ==============================
 
 packetSelect.addEventListener(
   "change",
   () => {
 
     loadPacket(
-      Number(packetSelect.value)
+      Number(
+        packetSelect.value
+      )
     );
 
   }
 );
 
 
-/* ─────────────────────────────
-   SUBJECT CHANGE
-───────────────────────────── */
+// ==============================
+// SUBJECT CHANGE
+// ==============================
 
 subjectSelect.addEventListener(
   "change",
@@ -1211,30 +1484,9 @@ subjectSelect.addEventListener(
 );
 
 
-/* ─────────────────────────────
-   CONTACT POPUP
-───────────────────────────── */
-
-const contactButton =
-  document.getElementById(
-    "contactButton"
-  );
-
-const contactModal =
-  document.getElementById(
-    "contactModal"
-  );
-
-const closeContact =
-  document.getElementById(
-    "closeContact"
-  );
-
-const copyDiscord =
-  document.getElementById(
-    "copyDiscord"
-  );
-
+// ==============================
+// CONTACT POPUP
+// ==============================
 
 contactButton.addEventListener(
   "click",
@@ -1265,7 +1517,8 @@ contactModal.addEventListener(
   event => {
 
     if (
-      event.target === contactModal
+      event.target ===
+      contactModal
     ) {
 
       contactModal.classList.remove(
@@ -1277,6 +1530,10 @@ contactModal.addEventListener(
   }
 );
 
+
+// ==============================
+// COPY DISCORD
+// ==============================
 
 copyDiscord.addEventListener(
   "click",
@@ -1318,8 +1575,52 @@ copyDiscord.addEventListener(
 );
 
 
-/* ─────────────────────────────
-   START
-───────────────────────────── */
+// ==============================
+// COPY EMAIL
+// ==============================
+
+copyEmail.addEventListener(
+  "click",
+  async () => {
+
+    try {
+
+      await navigator.clipboard.writeText(
+        "tinosciencebowl@gmail.com"
+      );
+
+
+      const originalText =
+        copyEmail.textContent;
+
+
+      copyEmail.textContent =
+        "copied ♡";
+
+
+      setTimeout(() => {
+
+        copyEmail.textContent =
+          originalText;
+
+      }, 1500);
+
+
+    } catch (error) {
+
+      console.error(
+        "Could not copy email:",
+        error
+      );
+
+    }
+
+  }
+);
+
+
+// ==============================
+// START
+// ==============================
 
 loadPackets();
