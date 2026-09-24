@@ -899,32 +899,12 @@ function renderChoices(q) {
       .toLowerCase()
       .includes("multiple")
   ) {
-
     return "";
-
   }
 
-
-  const letters =
-    ["W", "X", "Y", "Z"];
-
-for (const letter of letters) {
-  if (!q.choices[letter]) continue;
-
-  await naturalPause(PAUSES.betweenChoices, run);
-
-  const spokenLetter = letter.toLowerCase();
-
-  const ok = await speakNatural(
-    `${spokenLetter}. ${q.choices[letter]}`,
-    run
-  );
-
-  if (!ok) return false;
-}
+  const letters = ["W", "X", "Y", "Z"];
 
   return `
-
     <div class="choices">
 
       ${letters.map(letter => `
@@ -936,9 +916,7 @@ for (const letter of letters) {
           </span>
 
           <span class="choice-text">
-            ${escapeHTML(
-              q.choices[letter]
-            )}
+            ${escapeHTML(q.choices[letter])}
           </span>
 
         </div>
@@ -946,9 +924,7 @@ for (const letter of letters) {
       `).join("")}
 
     </div>
-
   `;
-
 }
 
 
@@ -1275,10 +1251,10 @@ async function speakScienceBowlQuestion(q) {
       */
 
       ok =
-        await speakNatural(
-          letter,
-          run
-        );
+      await speakNatural(
+      letter.toLowerCase(),
+      run
+    );
 
 
       if (!ok) return;
