@@ -14,6 +14,15 @@ let speechRun = 0;
 
 
 // ==============================
+// TIMER
+// ==============================
+
+let timerInterval = null;
+let timerTimeout = null;
+let timerRun = 0;
+
+
+// ==============================
 // ELEMENTS
 // ==============================
 
@@ -32,6 +41,9 @@ const voiceSelect =
 const info =
   document.getElementById("info");
 
+const timerDiv =
+  document.getElementById("timer");
+
 const questionDiv =
   document.getElementById("question");
 
@@ -46,7 +58,7 @@ const replayButton =
 
 
 // ==============================
-// CONTACT ELEMENTS
+// CONTACT
 // ==============================
 
 const contactButton =
@@ -66,16 +78,22 @@ const copyEmail =
 
 
 // ==============================
-// SPEECH PAUSES
+// SPEECH SETTINGS
 // ==============================
 
 const PAUSES = {
 
+  // Pause between major sections
   betweenSections: 400,
 
+  // Pause before W/X/Y/Z
   beforeChoices: 850,
 
-  betweenChoices: 800
+  // Pause between W/X/Y/Z
+  betweenChoices: 800,
+
+  // Small natural pause between spoken word chunks
+  betweenWords: 70
 
 };
 
@@ -156,12 +174,10 @@ async function readPDF(url) {
   info.textContent =
     "Loading PDF...";
 
-
   const pdf =
     await pdfjsLib
       .getDocument(url)
       .promise;
-
 
   let fullText = "";
 
@@ -354,15 +370,10 @@ function parseQuestionBlock(
 
 
   const choices = {
-
     W: "",
-
     X: "",
-
     Y: "",
-
     Z: ""
-
   };
 
 
@@ -587,7 +598,7 @@ function parseQuestions(text) {
 
 
 // ==============================
-// LOAD PACKETS.JSON
+// LOAD PACKETS
 // ==============================
 
 async function loadPackets() {
@@ -659,12 +670,12 @@ async function loadPackets() {
 
 
 // ==============================
-// LOAD A PACKET
+// LOAD PACKET
 // ==============================
 
 async function loadPacket(index) {
 
-  stopSpeech();
+  stopEverything();
 
 
   const packet =
@@ -790,10 +801,14 @@ function applySubjectFilter() {
 
 function showQuestion() {
 
-  stopSpeech();
+  stopEverything();
 
 
   answerDiv.innerHTML = "";
+
+  timerDiv.innerHTML = "";
+
+  timerDiv.className = "";
 
 
   state =
@@ -808,10 +823,8 @@ function showQuestion() {
     questionDiv.innerHTML =
       "";
 
-
     mainButton.textContent =
       "🔊 READ QUESTION";
-
 
     return;
 
@@ -957,53 +970,30 @@ function escapeHTML(text) {
 
 
 // ==============================
-// STOP SPEECH
+// STOP EVERYTHING
 // ==============================
 
-function stopSpeech() {
+function stopEverything() {
 
   speechRun++;
 
+  timerRun++;
+
   speechSynthesis.cancel();
 
-  state =
-    "question";
+  clearInterval(timerInterval);
+
+  clearTimeout(timerTimeout);
+
+  timerInterval = null;
+
+  timerTimeout = null;
 
 }
 
 
 // ==============================
-// WAIT
-// ==============================
-
-function wait(ms, run) {
-
-  return new Promise(resolve => {
-
-    setTimeout(() => {
-
-      if (
-        run !== speechRun
-      ) {
-
-        resolve(false);
-
-        return;
-
-      }
-
-
-      resolve(true);
-
-    }, ms);
-
-  });
-
-}
-
-
-// ==============================
-// SPEAK ONE CHUNK
+// NATURAL SPEECH
 // ==============================
 
 function speakChunk(
@@ -1080,12 +1070,113 @@ function speakChunk(
 
 
 // ==============================
+// SMALL NATURAL PAUSE
+// ==============================
+
+function naturalPause(
+  ms,
+  run
+) {
+
+  return new Promise(resolve => {
+
+    setTimeout(() => {
+
+      resolve(
+        run === speechRun
+      );
+
+    }, ms);
+
+  });
+
+}
+
+
+// ==============================
+// SPEAK TEXT NATURALLY
+// ==============================
+
+async function speakNatural(
+  text,
+  run
+) {
+
+  if (
+    !text ||
+    run !== speechRun
+  ) {
+
+    return false;
+
+  }
+
+
+  /*
+    Split at natural punctuation first.
+    This makes the browser's voice pause
+    naturally instead of gliding through
+    the entire paragraph.
+  */
+
+  const chunks =
+    text.match(
+      /[^.!?;:]+[.!?;:]?|[^.!?;:]+$/g
+    ) || [text];
+
+
+  for (const chunk of chunks) {
+
+    const clean =
+      chunk.trim();
+
+
+    if (!clean) continue;
+
+
+    const ok =
+      await speakChunk(
+        clean,
+        run
+      );
+
+
+    if (!ok) return false;
+
+
+    /*
+      Small extra pause after each
+      sentence/phrase.
+    */
+
+    const stillRunning =
+      await naturalPause(
+        PAUSES.betweenWords,
+        run
+      );
+
+
+    if (!stillRunning) {
+
+      return false;
+
+    }
+
+  }
+
+
+  return run === speechRun;
+
+}
+
+
+// ==============================
 // READ SCIENCE BOWL QUESTION
 // ==============================
 
 async function speakScienceBowlQuestion(q) {
 
-  stopSpeech();
+  stopEverything();
 
 
   const run =
@@ -1103,7 +1194,7 @@ async function speakScienceBowlQuestion(q) {
   // SUBJECT
 
   let ok =
-    await speakChunk(
+    await speakNatural(
       q.subject,
       run
     );
@@ -1125,7 +1216,7 @@ async function speakScienceBowlQuestion(q) {
   // TOSS-UP / BONUS
 
   ok =
-    await speakChunk(
+    await speakNatural(
 
       q.type === "TOSS-UP"
 
@@ -1154,7 +1245,7 @@ async function speakScienceBowlQuestion(q) {
   // FORMAT
 
   ok =
-    await speakChunk(
+    await speakNatural(
       q.format,
       run
     );
@@ -1173,10 +1264,10 @@ async function speakScienceBowlQuestion(q) {
   if (!ok) return;
 
 
-  // QUESTION TEXT
+  // QUESTION
 
   ok =
-    await speakChunk(
+    await speakNatural(
       q.text,
       run
     );
@@ -1185,7 +1276,7 @@ async function speakScienceBowlQuestion(q) {
   if (!ok) return;
 
 
-  // MULTIPLE CHOICE OPTIONS
+  // MULTIPLE CHOICE
 
   const isMultipleChoice =
     q.format
@@ -1226,9 +1317,34 @@ async function speakScienceBowlQuestion(q) {
       if (!choice) continue;
 
 
+      /*
+        Say the letter separately so
+        W / X / Y / Z are very clear.
+      */
+
       ok =
-        await speakChunk(
-          `${letter}. ${choice}`,
+        await speakNatural(
+          letter,
+          run
+        );
+
+
+      if (!ok) return;
+
+
+      ok =
+        await naturalPause(
+          120,
+          run
+        );
+
+
+      if (!ok) return;
+
+
+      ok =
+        await speakNatural(
+          choice,
           run
         );
 
@@ -1265,12 +1381,194 @@ async function speakScienceBowlQuestion(q) {
   }
 
 
+  // QUESTION IS FULLY READ
+
   state =
     "answer";
 
 
   mainButton.textContent =
     "💗 REVEAL ANSWER";
+
+
+  // START TIMER
+
+  startAnswerTimer(q);
+
+}
+
+
+// ==============================
+// WAIT
+// ==============================
+
+function wait(ms, run) {
+
+  return new Promise(resolve => {
+
+    setTimeout(() => {
+
+      if (
+        run !== speechRun
+      ) {
+
+        resolve(false);
+
+        return;
+
+      }
+
+
+      resolve(true);
+
+    }, ms);
+
+  });
+
+}
+
+
+// ==============================
+// START 5 / 20 SECOND TIMER
+// ==============================
+
+function startAnswerTimer(q) {
+
+  clearInterval(timerInterval);
+
+  clearTimeout(timerTimeout);
+
+
+  timerRun++;
+
+  const thisTimer =
+    timerRun;
+
+
+  const totalSeconds =
+    q.type === "TOSS-UP"
+      ? 5
+      : 20;
+
+
+  let remaining =
+    totalSeconds;
+
+
+  timerDiv.className =
+    "";
+
+
+  timerDiv.textContent =
+    remaining;
+
+
+  timerInterval =
+    setInterval(() => {
+
+      if (
+        thisTimer !== timerRun
+      ) {
+
+        clearInterval(
+          timerInterval
+        );
+
+        return;
+
+      }
+
+
+      remaining--;
+
+
+      if (
+        remaining <= 0
+      ) {
+
+        clearInterval(
+          timerInterval
+        );
+
+        timerInterval =
+          null;
+
+        timerDiv.textContent =
+          "TIME'S UP!";
+
+        timerDiv.classList.add(
+          "timer-up"
+        );
+
+
+        speakTimeUp();
+
+        return;
+
+      }
+
+
+      timerDiv.textContent =
+        remaining;
+
+
+      if (
+        remaining <= 3
+      ) {
+
+        timerDiv.classList.add(
+          "timer-warning"
+        );
+
+      }
+
+    }, 1000);
+
+}
+
+
+// ==============================
+// TIME'S UP VOICE
+// ==============================
+
+function speakTimeUp() {
+
+  speechRun++;
+
+  speechSynthesis.cancel();
+
+
+  const utterance =
+    new SpeechSynthesisUtterance(
+      "Time's up!"
+    );
+
+
+  utterance.rate =
+    Number(
+      speedSelect.value
+    );
+
+
+  utterance.pitch =
+    1;
+
+
+  const voice =
+    getSelectedVoice();
+
+
+  if (voice) {
+
+    utterance.voice =
+      voice;
+
+  }
+
+
+  speechSynthesis.speak(
+    utterance
+  );
 
 }
 
@@ -1279,13 +1577,43 @@ async function speakScienceBowlQuestion(q) {
 // REVEAL ANSWER
 // ==============================
 
-async function revealAnswer() {
+function revealAnswer() {
 
   const q =
     questions[current];
 
 
   if (!q) return;
+
+
+  // Stop countdown
+
+  timerRun++;
+
+
+  clearInterval(
+    timerInterval
+  );
+
+
+  clearTimeout(
+    timerTimeout
+  );
+
+
+  timerInterval =
+    null;
+
+  timerTimeout =
+    null;
+
+
+  timerDiv.innerHTML =
+    "";
+
+
+  timerDiv.className =
+    "";
 
 
   state =
@@ -1331,6 +1659,10 @@ async function revealAnswer() {
     );
 
 
+  utterance.pitch =
+    1;
+
+
   const voice =
     getSelectedVoice();
 
@@ -1365,7 +1697,7 @@ mainButton.addEventListener(
     if (!questions.length) return;
 
 
-    // READ QUESTION
+    // READ
 
     if (
       state === "question"
@@ -1386,7 +1718,7 @@ mainButton.addEventListener(
       state === "reading"
     ) {
 
-      stopSpeech();
+      stopEverything();
 
 
       state =
@@ -1402,7 +1734,7 @@ mainButton.addEventListener(
     }
 
 
-    // REVEAL ANSWER
+    // REVEAL
 
     if (
       state === "answer"
@@ -1415,7 +1747,7 @@ mainButton.addEventListener(
     }
 
 
-    // NEXT QUESTION
+    // NEXT
 
     if (
       state === "next"
