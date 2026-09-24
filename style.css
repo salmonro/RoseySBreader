@@ -1,46 +1,49 @@
-/* ─────────────────────────────
-   GLOBAL
-───────────────────────────── */
-
 * {
   box-sizing: border-box;
 }
 
 
 body {
+
   margin: 0;
+
   min-height: 100vh;
 
   background:
+
     radial-gradient(
       circle at top left,
       #ffe8f4 0%,
       transparent 35%
     ),
+
     radial-gradient(
       circle at bottom right,
       #eee5ff 0%,
       transparent 35%
     ),
+
     #fff8fc;
 
   color: #654d5e;
 
-  font-family:
-    "Nunito",
-    sans-serif;
+  font-family: "Nunito", sans-serif;
+
 }
 
 
-/* ─────────────────────────────
-   HEADER
-───────────────────────────── */
+/* ============================== */
+/* HEADER */
+/* ============================== */
 
 header {
+
   width: 100%;
 
   display: flex;
+
   align-items: center;
+
   gap: 12px;
 
   padding: 18px 25px;
@@ -52,131 +55,187 @@ header {
     1px solid #f3d6e5;
 
   box-shadow:
-    0 4px 18px rgba(190, 120, 160, 0.08);
+    0 4px 18px
+    rgba(190, 120, 160, 0.08);
 
   position: sticky;
+
   top: 0;
+
   z-index: 20;
 
   backdrop-filter: blur(10px);
+
 }
 
 
+/* ============================== */
+/* BRAND */
+/* ============================== */
+
 .brand {
+
   margin-right: auto;
+
 }
 
 
 .brand-title {
-  font-family:
-    "Quicksand",
-    sans-serif;
+
+  font-family: "Quicksand", sans-serif;
 
   font-size: 20px;
+
   font-weight: 700;
 
   letter-spacing: 1.5px;
 
   color: #b76591;
+
 }
 
 
 .brand-subtitle {
+
   margin-top: 2px;
 
   font-size: 11px;
 
   color: #c792ad;
+
 }
 
 
-/* ─────────────────────────────
-   SELECTS
-───────────────────────────── */
+/* ============================== */
+/* SELECTS */
+/* ============================== */
 
 select {
+
   appearance: none;
 
-  border: 1px solid #efc8db;
+  border:
+    1px solid #efc8db;
 
   background:
     #fffafd;
 
-  color: #8b6178;
+  color:
+    #8b6178;
 
-  border-radius: 13px;
+  border-radius:
+    13px;
 
   padding:
     9px 13px;
 
   font-family:
-    "Nunito",
-    sans-serif;
+    "Nunito", sans-serif;
 
-  font-size: 12px;
-  font-weight: 700;
+  font-size:
+    12px;
 
-  cursor: pointer;
+  font-weight:
+    700;
 
-  outline: none;
+  cursor:
+    pointer;
+
+  outline:
+    none;
 
   transition:
     0.2s ease;
+
 }
 
 
 select:hover {
-  border-color: #dfa4c1;
+
+  border-color:
+    #dfa4c1;
+
 }
 
 
 select:focus {
-  border-color: #d88caf;
+
+  border-color:
+    #d88caf;
 
   box-shadow:
-    0 0 0 3px rgba(225, 155, 190, 0.15);
+    0 0 0 3px
+    rgba(225, 155, 190, 0.15);
+
 }
 
 
-/* ─────────────────────────────
-   MAIN
-───────────────────────────── */
+/* ============================== */
+/* MAIN */
+/* ============================== */
 
 main {
-  width: min(900px, calc(100% - 35px));
+
+  width:
+    min(900px, calc(100% - 35px));
 
   margin:
     35px auto 0;
 
-  text-align: center;
+  padding-bottom:
+    130px;
+
+  text-align:
+    center;
+
 }
 
+
+/* ============================== */
+/* DECORATIONS */
+/* ============================== */
 
 .decorations {
-  color: #e3a2c1;
 
-  font-size: 18px;
+  color:
+    #e3a2c1;
 
-  margin-bottom: 16px;
+  font-size:
+    18px;
+
+  margin-bottom:
+    16px;
+
 }
 
+
+/* ============================== */
+/* INFO */
+/* ============================== */
 
 #info {
-  color: #bd8ba7;
 
-  font-size: 13px;
+  color:
+    #bd8ba7;
 
-  font-weight: 700;
+  font-size:
+    13px;
 
-  margin-bottom: 14px;
+  font-weight:
+    700;
+
+  margin-bottom:
+    14px;
+
 }
 
 
-/* ─────────────────────────────
-   QUESTION CARD
-───────────────────────────── */
+/* ============================== */
+/* QUESTION CARD */
+/* ============================== */
 
 #question {
+
   background:
     rgba(255, 255, 255, 0.9);
 
@@ -193,89 +252,133 @@ main {
     0 10px 35px
     rgba(180, 110, 150, 0.1);
 
-  min-height: 250px;
+  min-height:
+    250px;
+
 }
 
+
+/* ============================== */
+/* QUESTION LABEL */
+/* ============================== */
 
 .question-label {
+
   font-family:
-    "Quicksand",
-    sans-serif;
+    "Quicksand", sans-serif;
 
-  font-size: 14px;
+  font-size:
+    14px;
 
-  font-weight: 700;
+  font-weight:
+    700;
 
-  letter-spacing: 1.2px;
+  letter-spacing:
+    1.2px;
 
-  color: #c06b98;
+  color:
+    #c06b98;
 
-  text-transform: uppercase;
+  text-transform:
+    uppercase;
 
-  margin-bottom: 8px;
+  margin-bottom:
+    8px;
+
 }
 
 
+/* ============================== */
+/* QUESTION FORMAT */
+/* ============================== */
+
 .question-format {
-  display: inline-block;
 
-  font-size: 11px;
+  display:
+    inline-block;
 
-  color: #b08b9f;
+  font-size:
+    11px;
 
-  background: #fff0f7;
+  color:
+    #b08b9f;
 
-  border: 1px solid #f5d4e4;
+  background:
+    #fff0f7;
+
+  border:
+    1px solid #f5d4e4;
 
   padding:
     5px 10px;
 
-  border-radius: 20px;
+  border-radius:
+    20px;
 
-  margin-bottom: 24px;
+  margin-bottom:
+    24px;
+
 }
 
 
+/* ============================== */
+/* QUESTION TEXT */
+/* ============================== */
+
 .question-text {
+
   font-family:
-    "Quicksand",
-    sans-serif;
+    "Quicksand", sans-serif;
 
   font-size:
     clamp(19px, 3vw, 26px);
 
-  line-height: 1.55;
+  line-height:
+    1.55;
 
-  font-weight: 600;
+  font-weight:
+    600;
 
-  color: #574353;
+  color:
+    #574353;
+
 }
 
 
-/* ─────────────────────────────
-   MULTIPLE CHOICE
-───────────────────────────── */
+/* ============================== */
+/* MULTIPLE CHOICE */
+/* ============================== */
 
 .choices {
-  display: grid;
+
+  display:
+    grid;
 
   grid-template-columns:
     1fr 1fr;
 
-  gap: 12px;
+  gap:
+    12px;
 
-  margin-top: 28px;
+  margin-top:
+    28px;
+
 }
 
 
 .choice {
-  display: flex;
 
-  align-items: center;
+  display:
+    flex;
 
-  gap: 12px;
+  align-items:
+    center;
 
-  text-align: left;
+  gap:
+    12px;
+
+  text-align:
+    left;
 
   background:
     #fff8fc;
@@ -291,10 +394,12 @@ main {
 
   transition:
     0.2s ease;
+
 }
 
 
 .choice:hover {
+
   transform:
     translateY(-2px);
 
@@ -303,21 +408,32 @@ main {
 
   border-color:
     #e7abc8;
+
 }
 
 
 .choice-letter {
-  width: 28px;
-  height: 28px;
 
-  display: flex;
+  width:
+    28px;
 
-  align-items: center;
-  justify-content: center;
+  height:
+    28px;
 
-  flex-shrink: 0;
+  display:
+    flex;
 
-  border-radius: 50%;
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  flex-shrink:
+    0;
+
+  border-radius:
+    50%;
 
   background:
     #f5c9df;
@@ -325,36 +441,51 @@ main {
   color:
     #a55c83;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
-  font-size: 12px;
+  font-size:
+    12px;
+
 }
 
 
 .choice-text {
-  color: #74576a;
 
-  font-size: 14px;
+  color:
+    #74576a;
 
-  line-height: 1.4;
+  font-size:
+    14px;
+
+  line-height:
+    1.4;
+
 }
 
 
-/* ─────────────────────────────
-   ANSWER
-───────────────────────────── */
+/* ============================== */
+/* ANSWER */
+/* ============================== */
 
 #answer {
-  margin-top: 18px;
+
+  margin-top:
+    18px;
+
 }
 
 
 .answer-card {
-  display: inline-flex;
 
-  align-items: center;
+  display:
+    inline-flex;
 
-  gap: 10px;
+  align-items:
+    center;
+
+  gap:
+    10px;
 
   background:
     #fff2f8;
@@ -371,55 +502,94 @@ main {
   box-shadow:
     0 5px 15px
     rgba(190, 110, 155, 0.08);
+
 }
 
 
 .answer-label {
-  color: #c56f99;
 
-  font-size: 11px;
+  color:
+    #c56f99;
 
-  font-weight: 800;
+  font-size:
+    11px;
 
-  letter-spacing: 1px;
+  font-weight:
+    800;
+
+  letter-spacing:
+    1px;
+
 }
 
 
 .answer-text {
-  color: #765365;
 
-  font-weight: 700;
+  color:
+    #765365;
 
-  font-size: 14px;
+  font-weight:
+    700;
+
+  font-size:
+    14px;
+
 }
 
 
-/* ─────────────────────────────
-   CONTROLS
-───────────────────────────── */
+/* ============================== */
+/* FIXED CONTROLS */
+/* ============================== */
 
 .controls {
-  display: flex;
 
-  justify-content: center;
+  position:
+    fixed;
 
-  align-items: center;
+  left:
+    50%;
 
-  gap: 12px;
+  bottom:
+    25px;
 
-  margin-top: 25px;
+  transform:
+    translateX(-50%);
+
+  display:
+    flex;
+
+  justify-content:
+    center;
+
+  align-items:
+    center;
+
+  gap:
+    12px;
+
+  width:
+    max-content;
+
+  z-index:
+    500;
+
+  margin:
+    0;
+
+  padding:
+    0;
+
 }
 
 
-button {
-  font-family:
-    "Nunito",
-    sans-serif;
-}
-
+/* ============================== */
+/* MAIN BUTTON */
+/* ============================== */
 
 #mainButton {
-  border: none;
+
+  border:
+    none;
 
   border-radius:
     16px;
@@ -437,16 +607,20 @@ button {
       #cdaee9
     );
 
-  color: white;
+  color:
+    white;
 
-  font-size: 13px;
+  font-size:
+    13px;
 
-  font-weight: 800;
+  font-weight:
+    800;
 
   letter-spacing:
     0.3px;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 
   box-shadow:
     0 6px 16px
@@ -454,33 +628,47 @@ button {
 
   transition:
     0.2s ease;
+
 }
 
 
 #mainButton:hover:not(:disabled) {
+
   transform:
     translateY(-2px);
 
   box-shadow:
     0 9px 20px
     rgba(205, 130, 175, 0.28);
+
 }
 
 
 #mainButton:active:not(:disabled) {
+
   transform:
     translateY(0);
+
 }
 
 
 #mainButton:disabled {
-  opacity: 0.55;
 
-  cursor: default;
+  opacity:
+    0.55;
+
+  cursor:
+    default;
+
 }
 
 
+/* ============================== */
+/* REPLAY */
+/* ============================== */
+
 #replay {
+
   border:
     1px solid #edc7da;
 
@@ -507,103 +695,148 @@ button {
 
   transition:
     0.2s ease;
+
 }
 
 
 #replay:hover {
+
   background:
     #fff0f7;
 
   transform:
     translateY(-2px);
+
 }
 
 
-/* ─────────────────────────────
-   PACKET COMPLETE
-───────────────────────────── */
+/* ============================== */
+/* COMPLETE MESSAGE */
+/* ============================== */
 
 .complete-message {
-  display: flex;
 
-  align-items: center;
-  justify-content: center;
+  display:
+    flex;
 
-  min-height: 170px;
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  min-height:
+    170px;
 
   font-family:
-    "Quicksand",
-    sans-serif;
+    "Quicksand", sans-serif;
 
-  font-size: 27px;
+  font-size:
+    27px;
 
-  font-weight: 700;
+  font-weight:
+    700;
 
-  color: #c36d98;
+  color:
+    #c36d98;
+
 }
 
 
-/* ─────────────────────────────
-   FOOTER / CONTACT
-───────────────────────────── */
+/* ============================== */
+/* FOOTER */
+/* ============================== */
 
 .site-footer {
-  width: 100%;
 
-  display: flex;
+  width:
+    100%;
 
-  justify-content: center;
+  display:
+    flex;
 
-  align-items: center;
+  justify-content:
+    center;
 
-  gap: 10px;
+  align-items:
+    center;
+
+  gap:
+    10px;
 
   padding:
     28px 20px 22px;
 
-  margin-top: 35px;
+  margin-top:
+    35px;
+
 }
 
 
+/* ============================== */
+/* CONTACT BUTTON */
+/* ============================== */
+
 .contact-link {
-  border: none;
 
-  background: none;
+  border:
+    none;
 
-  color: #b86b9c;
+  background:
+    none;
+
+  color:
+    #b86b9c;
 
   font-family:
-    "Nunito",
-    sans-serif;
+    "Nunito", sans-serif;
 
-  font-size: 14px;
+  font-size:
+    14px;
 
-  font-weight: 700;
+  font-weight:
+    700;
 
-  cursor: pointer;
+  cursor:
+    pointer;
 
-  padding: 5px;
+  padding:
+    5px;
 
   transition:
     0.2s ease;
+
 }
 
 
 .contact-link:hover {
-  color: #e38fbd;
+
+  color:
+    #e38fbd;
 
   transform:
     translateY(-1px);
+
 }
 
 
+/* ============================== */
+/* PROFILE PICTURE */
+/* ============================== */
+
 .profile-circle {
-  width: 27px;
-  height: 27px;
 
-  border-radius: 50%;
+  width:
+    38px;
 
-  overflow: hidden;
+  height:
+    38px;
+
+  border-radius:
+    50%;
+
+  overflow:
+    hidden;
 
   border:
     2px solid #f1b5d3;
@@ -612,28 +845,40 @@ button {
     0 2px 8px
     rgba(200, 120, 170, 0.2);
 
-  flex-shrink: 0;
+  flex-shrink:
+    0;
+
 }
 
 
 .profile-circle img {
-  width: 100%;
-  height: 100%;
 
-  object-fit: cover;
+  width:
+    100%;
 
-  display: block;
+  height:
+    100%;
+
+  object-fit:
+    cover;
+
+  display:
+    block;
+
 }
 
 
-/* ─────────────────────────────
-   CONTACT MODAL
-───────────────────────────── */
+/* ============================== */
+/* CONTACT MODAL */
+/* ============================== */
 
 .contact-modal {
-  position: fixed;
 
-  inset: 0;
+  position:
+    fixed;
+
+  inset:
+    0;
 
   background:
     rgba(120, 80, 110, 0.18);
@@ -641,38 +886,58 @@ button {
   backdrop-filter:
     blur(5px);
 
-  display: flex;
+  display:
+    flex;
 
-  justify-content: center;
-  align-items: center;
+  justify-content:
+    center;
 
-  opacity: 0;
+  align-items:
+    center;
 
-  visibility: hidden;
+  opacity:
+    0;
 
-  pointer-events: none;
+  visibility:
+    hidden;
+
+  pointer-events:
+    none;
 
   transition:
     0.2s ease;
 
-  z-index: 1000;
+  z-index:
+    1000;
+
 }
 
 
 .contact-modal.show {
-  opacity: 1;
 
-  visibility: visible;
+  opacity:
+    1;
 
-  pointer-events: auto;
+  visibility:
+    visible;
+
+  pointer-events:
+    auto;
+
 }
 
 
+/* ============================== */
+/* CONTACT BOX */
+/* ============================== */
+
 .contact-box {
-  position: relative;
+
+  position:
+    relative;
 
   width:
-    min(360px, calc(100% - 40px));
+    min(380px, calc(100% - 40px));
 
   background:
     #fff8fc;
@@ -687,75 +952,115 @@ button {
     30px 26px 22px;
 
   box-shadow:
+
     0 18px 50px
     rgba(160, 90, 130, 0.18),
 
     0 4px 12px
     rgba(160, 90, 130, 0.08);
 
-  text-align: center;
+  text-align:
+    center;
 
   transform:
     translateY(8px) scale(0.97);
 
   transition:
     0.2s ease;
+
 }
 
 
-.contact-modal.show
-.contact-box {
+.contact-modal.show .contact-box {
+
   transform:
     translateY(0) scale(1);
+
 }
 
 
+/* ============================== */
+/* CLOSE BUTTON */
+/* ============================== */
+
 .close-contact {
-  position: absolute;
 
-  top: 10px;
-  right: 14px;
+  position:
+    absolute;
 
-  border: none;
+  top:
+    10px;
 
-  background: none;
+  right:
+    14px;
 
-  color: #c98aac;
+  border:
+    none;
 
-  font-size: 24px;
+  background:
+    none;
 
-  cursor: pointer;
+  color:
+    #c98aac;
+
+  font-size:
+    24px;
+
+  cursor:
+    pointer;
+
 }
 
 
 .close-contact:hover {
-  color: #a95f87;
+
+  color:
+    #a95f87;
+
 }
 
+
+/* ============================== */
+/* CONTACT TITLE */
+/* ============================== */
 
 .contact-title {
+
   font-family:
-    "Quicksand",
-    sans-serif;
+    "Quicksand", sans-serif;
 
-  font-size: 23px;
+  font-size:
+    23px;
 
-  font-weight: 700;
+  font-weight:
+    700;
 
-  color: #b76591;
+  color:
+    #b76591;
 
-  margin-bottom: 24px;
+  margin-bottom:
+    24px;
+
 }
 
 
+/* ============================== */
+/* CONTACT ITEMS */
+/* ============================== */
+
 .contact-item {
-  display: flex;
 
-  align-items: center;
+  display:
+    flex;
 
-  justify-content: space-between;
+  align-items:
+    center;
 
-  gap: 12px;
+  justify-content:
+    space-between;
+
+  gap:
+    12px;
 
   background:
     #fff;
@@ -776,19 +1081,36 @@ button {
     #76566b;
 
   font-family:
-    "Nunito",
-    sans-serif;
+    "Nunito", sans-serif;
 
   font-size:
     13px;
 
   text-align:
     left;
+
 }
 
 
+.contact-item span {
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
+
+}
+
+
+/* ============================== */
+/* COPY BUTTON */
+/* ============================== */
+
 .copy-button {
-  border: none;
+
+  border:
+    none;
 
   border-radius:
     9px;
@@ -803,8 +1125,7 @@ button {
     #a65d87;
 
   font-family:
-    "Nunito",
-    sans-serif;
+    "Nunito", sans-serif;
 
   font-size:
     11px;
@@ -818,17 +1139,26 @@ button {
   transition:
     0.2s ease;
 
-  flex-shrink: 0;
+  flex-shrink:
+    0;
+
 }
 
 
 .copy-button:hover {
+
   background:
     #efb9d5;
+
 }
 
 
+/* ============================== */
+/* BOTTOM HEART */
+/* ============================== */
+
 .contact-heart {
+
   margin-top:
     18px;
 
@@ -837,69 +1167,127 @@ button {
 
   font-size:
     23px;
+
 }
 
 
-/* ─────────────────────────────
-   MOBILE
-───────────────────────────── */
+/* ============================== */
+/* MOBILE */
+/* ============================== */
 
 @media (max-width: 700px) {
 
   header {
-    flex-wrap: wrap;
+
+    flex-wrap:
+      wrap;
 
     padding:
       15px;
+
   }
 
 
   .brand {
-    width: 100%;
+
+    width:
+      100%;
 
     margin-bottom:
       3px;
+
+  }
+
+
+  .brand-title {
+
+    font-size:
+      18px;
+
+  }
+
+
+  .brand-subtitle {
+
+    font-size:
+      10px;
+
   }
 
 
   header select {
-    flex: 1;
 
-    min-width: 0;
+    flex:
+      1;
+
+    min-width:
+      0;
+
   }
 
 
   main {
+
     width:
       calc(100% - 24px);
 
     margin-top:
       22px;
+
+    padding-bottom:
+      130px;
+
   }
 
 
   #question {
+
     padding:
       26px 20px;
+
   }
 
 
   .choices {
+
     grid-template-columns:
       1fr;
+
   }
 
 
   .controls {
+
     flex-direction:
-      column;
+      row;
+
   }
 
 
-  #mainButton,
+  #mainButton {
+
+    min-width:
+      190px;
+
+  }
+
+
   #replay {
+
     width:
-      100%;
+      auto;
+
+  }
+
+
+  .profile-circle {
+
+    width:
+      38px;
+
+    height:
+      38px;
+
   }
 
 }
