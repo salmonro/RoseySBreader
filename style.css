@@ -229,6 +229,36 @@ main {
 
 }
 
+/* ============================== */
+/* TIMER */
+/* ============================== */
+
+#timer {
+  min-height: 42px;
+  margin-bottom: 12px;
+
+  font-family: "Quicksand", sans-serif;
+  font-size: 30px;
+  font-weight: 800;
+
+  color: #c56f99;
+
+  transition: 0.2s ease;
+}
+
+#timer:empty {
+  visibility: hidden;
+}
+
+#timer.timer-warning {
+  transform: scale(1.08);
+}
+
+#timer.timer-up {
+  font-size: 24px;
+  color: #c56f99;
+}
+
 
 /* ============================== */
 /* QUESTION CARD */
