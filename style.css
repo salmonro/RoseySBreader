@@ -543,27 +543,21 @@ main {
 
 .controls {
   position: fixed;
-  
   left: 50%;
-  
-  bottom: 90px;
-  
+  bottom: 82px;
   transform: translateX(-50%);
-  
+
   display: flex;
-  
   justify-content: center;
-  
   align-items: center;
-  
-  gap: 12px;
-  
+
+  gap: 14px;
+
   width: max-content;
-  
+
   z-index: 500;
-  
+
   margin: 0;
-  
   padding: 0;
 }
 
@@ -573,79 +567,47 @@ main {
 /* ============================== */
 
 #mainButton {
+  border: none;
+  border-radius: 18px;
 
-  border:
-    none;
+  padding: 16px 28px;
 
-  border-radius:
-    16px;
+  min-width: 240px;
 
-  padding:
-    13px 22px;
+  background: linear-gradient(
+    135deg,
+    #efafd0,
+    #cdaee9
+  );
 
-  min-width:
-    190px;
+  color: white;
 
-  background:
-    linear-gradient(
-      135deg,
-      #efafd0,
-      #cdaee9
-    );
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
 
-  color:
-    white;
-
-  font-size:
-    13px;
-
-  font-weight:
-    800;
-
-  letter-spacing:
-    0.3px;
-
-  cursor:
-    pointer;
+  cursor: pointer;
 
   box-shadow:
-    0 6px 16px
-    rgba(205, 130, 175, 0.22);
+    0 7px 18px rgba(205, 130, 175, 0.24);
 
-  transition:
-    0.2s ease;
-
+  transition: 0.2s ease;
 }
-
 
 #mainButton:hover:not(:disabled) {
-
-  transform:
-    translateY(-2px);
+  transform: translateY(-2px);
 
   box-shadow:
-    0 9px 20px
-    rgba(205, 130, 175, 0.28);
-
+    0 10px 22px rgba(205, 130, 175, 0.3);
 }
-
 
 #mainButton:active:not(:disabled) {
-
-  transform:
-    translateY(0);
-
+  transform: translateY(0);
 }
 
-
 #mainButton:disabled {
-
-  opacity:
-    0.55;
-
-  cursor:
-    default;
-
+  opacity: 0.55;
+  cursor: default;
 }
 
 
@@ -654,45 +616,25 @@ main {
 /* ============================== */
 
 #replay {
+  border: 1px solid #edc7da;
+  border-radius: 18px;
 
-  border:
-    1px solid #edc7da;
+  padding: 15px 21px;
 
-  border-radius:
-    16px;
+  background: #fff8fc;
+  color: #b16d91;
 
-  padding:
-    12px 17px;
+  font-size: 14px;
+  font-weight: 800;
 
-  background:
-    #fff8fc;
+  cursor: pointer;
 
-  color:
-    #b16d91;
-
-  font-size:
-    13px;
-
-  font-weight:
-    800;
-
-  cursor:
-    pointer;
-
-  transition:
-    0.2s ease;
-
+  transition: 0.2s ease;
 }
 
-
 #replay:hover {
-
-  background:
-    #fff0f7;
-
-  transform:
-    translateY(-2px);
-
+  background: #fff0f7;
+  transform: translateY(-2px);
 }
 
 
@@ -734,28 +676,25 @@ main {
 /* ============================== */
 
 .site-footer {
+  position: fixed;
 
-  width:
-    100%;
+  left: 50%;
+  bottom: 24px;
 
-  display:
-    flex;
+  transform: translateX(-50%);
 
-  justify-content:
-    center;
+  width: max-content;
 
-  align-items:
-    center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 
-  gap:
-    10px;
+  gap: 12px;
 
-  padding:
-    28px 20px 22px;
+  margin: 0;
+  padding: 0;
 
-  margin-top:
-    35px;
-
+  z-index: 500;
 }
 
 
