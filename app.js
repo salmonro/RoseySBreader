@@ -904,8 +904,9 @@ function renderPacketList() {
         "click",
         async () => {
 
-          packetButton.textContent =
-            `♡ ${packet.name}`;
+          
+            packetButton.textContent =
+        `${packet.category || ""} · ${packet.name}`;
 
 
           packetModal.classList.remove(
