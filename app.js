@@ -785,7 +785,7 @@ async function loadPackets() {
     if (packets.length) {
 
       packetButton.textContent =
-        `♡ ${packets[0].name}`;
+    `${packets[0].category || ""} · ${packets[0].name}`;
 
 
       await loadPacket(0);
