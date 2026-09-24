@@ -1,187 +1,102 @@
-/* =========================================================
-   SCI BOWL READER
-   ========================================================= */
-
 pdfjsLib.GlobalWorkerOptions.workerSrc =
   "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 
-/* =========================================================
-   STATE
-   ========================================================= */
-
 let packets = [];
-
 let allQuestions = [];
 let questions = [];
 
 let current = 0;
 
-/*
-  Button states:
-
-  "question" = ready to read
-  "reading"  = currently reading
-  "answer"   = ready to reveal
-  "next"     = ready for next question
-*/
-
 let state = "question";
-
-
-/*
-  Every time speech starts, this number changes.
-
-  This lets us cancel delayed speech reliably.
-*/
 
 let speechRun = 0;
 
 
-/* =========================================================
-   ELEMENTS
-   ========================================================= */
+const packetSelect = document.getElementById("packet");
+const subjectSelect = document.getElementById("subject");
+const speedSelect = document.getElementById("speed");
+const voiceSelect = document.getElementById("voice");
 
-const packetSelect =
-  document.getElementById("packet");
+const info = document.getElementById("info");
+const questionDiv = document.getElementById("question");
+const answerDiv = document.getElementById("answer");
 
-const subjectSelect =
-  document.getElementById("subject");
+const mainButton = document.getElementById("mainButton");
+const replayButton = document.getElementById("replay");
 
-const speedSelect =
-  document.getElementById("speed");
-
-const voiceSelect =
-  document.getElementById("voice");
-
-const info =
-  document.getElementById("info");
-
-const questionDiv =
-  document.getElementById("question");
-
-const answerDiv =
-  document.getElementById("answer");
-
-const mainButton =
-  document.getElementById("mainButton");
-
-const interruptButton =
-  document.getElementById("interrupt");
-
-
-/* =========================================================
-   SPEECH SETTINGS
-   ========================================================= */
-
-/*
-  These control the pauses between sections.
-
-  Increase these if you want a slower,
-  more realistic Science Bowl reader.
-*/
 
 const PAUSES = {
-
-  betweenSections: 350,
-
-  beforeChoices: 700,
-
-  betweenChoices: 1000
-
+  betweenSections: 400,
+  beforeChoices: 850,
+  betweenChoices: 1200
 };
 
 
-/* =========================================================
+/* ─────────────────────────────
    VOICES
-   ========================================================= */
+───────────────────────────── */
 
 function loadVoices() {
 
-  const voices =
-    speechSynthesis.getVoices();
+  const voices = speechSynthesis.getVoices();
 
   voiceSelect.innerHTML = "";
 
-  const englishVoices =
-    voices.filter(voice =>
-      voice.lang &&
-      voice.lang
-        .toLowerCase()
-        .startsWith("en")
-    );
+  if (!voices.length) {
 
+    const option = document.createElement("option");
 
-  englishVoices.forEach(
-    (voice, index) => {
+    option.textContent = "Default voice";
 
-      const option =
-        document.createElement("option");
+    voiceSelect.appendChild(option);
 
-      option.value = index;
+    return;
+  }
 
-      option.textContent =
-        voice.name;
+  voices.forEach((voice, index) => {
 
-      voiceSelect.appendChild(
-        option
-      );
+    const option = document.createElement("option");
 
-    }
-  );
+    option.value = index;
 
+    option.textContent =
+      `${voice.name} (${voice.lang})`;
+
+    voiceSelect.appendChild(option);
+
+  });
 }
 
 
-speechSynthesis.onvoiceschanged =
-  loadVoices;
+speechSynthesis.onvoiceschanged = loadVoices;
 
 loadVoices();
 
 
-/* =========================================================
-   GET SELECTED VOICE
-   ========================================================= */
-
 function getSelectedVoice() {
 
-  const voices =
-    speechSynthesis.getVoices();
+  const voices = speechSynthesis.getVoices();
 
-  const englishVoices =
-    voices.filter(voice =>
-      voice.lang &&
-      voice.lang
-        .toLowerCase()
-        .startsWith("en")
-    );
+  const index = Number(voiceSelect.value);
 
-
-  return englishVoices[
-    voiceSelect.selectedIndex
-  ];
-
+  return voices[index] || voices[0] || null;
 }
 
 
-/* =========================================================
-   READ PDF
-   ========================================================= */
+/* ─────────────────────────────
+   PDF READER
+───────────────────────────── */
 
 async function readPDF(url) {
 
-  info.textContent =
-    "Loading PDF...";
+  info.textContent = "Loading PDF...";
 
-
-  const pdf =
-    await pdfjsLib
-      .getDocument(url)
-      .promise;
-
+  const pdf = await pdfjsLib
+    .getDocument(url)
+    .promise;
 
   let fullText = "";
-
 
   for (
     let pageNumber = 1;
@@ -192,38 +107,20 @@ async function readPDF(url) {
     info.textContent =
       `Reading packet... page ${pageNumber}/${pdf.numPages}`;
 
-
     const page =
       await pdf.getPage(pageNumber);
-
 
     const content =
       await page.getTextContent();
 
 
-    /*
-      PDF.js sometimes returns text
-      in strange visual order.
-
-      Reconstruct the lines using
-      their coordinates.
-    */
-
-    const items =
-      content.items
-        .filter(item =>
-          item.str &&
-          item.str.trim()
-        )
-        .map(item => ({
-
-          text: item.str.trim(),
-
-          x: item.transform[4],
-
-          y: item.transform[5]
-
-        }));
+    const items = content.items
+      .filter(item => item.str && item.str.trim())
+      .map(item => ({
+        text: item.str.trim(),
+        x: item.transform[4],
+        y: item.transform[5]
+      }));
 
 
     const lines = [];
@@ -233,182 +130,93 @@ async function readPDF(url) {
 
       let line =
         lines.find(existing =>
-          Math.abs(
-            existing.y - item.y
-          ) < 3
+          Math.abs(existing.y - item.y) < 3
         );
 
 
       if (!line) {
 
         line = {
-
           y: item.y,
-
           items: []
-
         };
 
         lines.push(line);
-
       }
 
 
       line.items.push(item);
-
     }
 
 
-    lines.sort(
-      (a, b) =>
-        b.y - a.y
+    lines.sort((a, b) =>
+      b.y - a.y
     );
 
 
     const pageLines =
       lines.map(line => {
 
-        line.items.sort(
-          (a, b) =>
-            a.x - b.x
+        line.items.sort((a, b) =>
+          a.x - b.x
         );
-
 
         return line.items
           .map(item => item.text)
           .join(" ");
-
       });
 
 
     fullText +=
       "\n" +
       pageLines.join("\n");
-
   }
 
 
   return fullText;
-
 }
 
 
-/* =========================================================
-   CLEAN TEXT
-   ========================================================= */
+/* ─────────────────────────────
+   TEXT CLEANING
+───────────────────────────── */
 
 function cleanText(text) {
 
   return text
-
     .replace(/\r/g, "")
-
     .replace(
       /High School Round \d+ Page \d+/gi,
       ""
     )
-
-    .replace(
-      /\s+/g,
-      " "
-    )
-
+    .replace(/\s+/g, " ")
     .trim();
-
 }
 
 
-/* =========================================================
-   PARSE ANSWER
-   ========================================================= */
+/* ─────────────────────────────
+   PARSE QUESTION
+───────────────────────────── */
 
-function extractAnswer(text) {
+function parseQuestionBlock(block, type) {
 
-  const match =
-    text.match(
-      /ANSWER\s*:\s*(.*)$/i
-    );
-
-
-  if (!match) {
-
-    return "";
-
-  }
-
-
-  let answer =
-    match[1].trim();
-
-
-  /*
-    Remove solution/explanation text.
-  */
-
-  answer =
-    answer.replace(
-      /\s*\(?Solution:.*$/i,
-      ""
-    );
-
-
-  /*
-    Remove ACCEPT information
-    from what gets displayed/read.
-  */
-
-  answer =
-    answer.replace(
-      /\s*\(ACCEPT:.*?\)/gi,
-      ""
-    );
-
-
-  return answer.trim();
-
-}
-
-
-/* =========================================================
-   PARSE ONE QUESTION
-   ========================================================= */
-
-function parseQuestionBlock(
-  block,
-  type
-) {
-
-  /*
-    Example:
-
-    1) BIOLOGY Short Answer
-    question...
-    ANSWER: PHENOTYPE
-  */
-
-
-  const header =
-    block.match(
-      /(\d+)\)\s*(EARTH SCIENCE|GENERAL SCIENCE|BIOLOGY|CHEMISTRY|PHYSICS|ASTRONOMY|MATH)\s+(Short Answer|Multiple Choice)\b/i
-    );
+  const header = block.match(
+    /(\d+)\)\s*(EARTH SCIENCE|GENERAL SCIENCE|BIOLOGY|CHEMISTRY|PHYSICS|ASTRONOMY|MATH)\s+(Short Answer|Multiple Choice)\b/i
+  );
 
 
   if (!header) {
-
     return null;
-
   }
 
 
   const number =
     Number(header[1]);
 
-
   const subject =
     header[2]
       .trim()
       .toUpperCase();
-
 
   const format =
     header[3];
@@ -416,79 +224,99 @@ function parseQuestionBlock(
 
   let body =
     block.substring(
-      header.index +
-      header[0].length
+      header.index + header[0].length
     );
 
 
-  body =
-    cleanText(body);
-
-
-  /*
-    Find ANSWER:
-  */
-
-  const answerIndex =
-    body.search(
-      /\bANSWER\s*:/i
-    );
-
-
-  let questionText = "";
-
-  let answer = "";
-
-
-  if (answerIndex >= 0) {
-
-    questionText =
-      body
-        .substring(
-          0,
-          answerIndex
-        )
-        .trim();
-
-
-    answer =
-      extractAnswer(
-        body.substring(
-          answerIndex
-        )
-      );
-
-  } else {
-
-    questionText =
-      body;
-
-  }
-
-
-  /*
-    Remove solution text.
-  */
-
-  questionText =
-    questionText.replace(
-      /\s*\(?Solution:.*$/i,
+  body = body
+    .replace(/\r/g, "")
+    .replace(
+      /High School Round \d+ Page \d+/gi,
       ""
     );
 
 
-  /*
-    Multiple-choice options.
-  */
+  const lines =
+    body
+      .split("\n")
+      .map(line => line.trim())
+      .filter(Boolean);
+
+
+  const answerIndex =
+    lines.findIndex(line =>
+      /^ANSWER\s*:/i.test(line)
+    );
+
+
+  const questionLines =
+    answerIndex >= 0
+      ? lines.slice(0, answerIndex)
+      : lines;
+
+
+  const answerLines =
+    answerIndex >= 0
+      ? [
+          lines[answerIndex]
+            .replace(/^ANSWER\s*:\s*/i, ""),
+          ...lines.slice(answerIndex + 1)
+        ]
+      : [];
+
 
   const choices = {
-
     W: "",
     X: "",
     Y: "",
     Z: ""
-
   };
+
+
+  const stemLines = [];
+
+
+  for (const line of questionLines) {
+
+    const choiceMatch =
+      line.match(
+        /^([WXYZ])\)\s*(.*)$/i
+      );
+
+
+    if (choiceMatch) {
+
+      choices[
+        choiceMatch[1].toUpperCase()
+      ] =
+        choiceMatch[2].trim();
+
+    } else {
+
+      stemLines.push(line);
+
+    }
+  }
+
+
+  let answerParts = [];
+
+
+  for (const line of answerLines) {
+
+    if (/^\(?Solution\b/i.test(line)) {
+      break;
+    }
+
+    answerParts.push(line);
+  }
+
+
+  let answer =
+    answerParts
+      .join(" ")
+      .replace(/\s+/g, " ")
+      .trim();
 
 
   if (
@@ -497,41 +325,28 @@ function parseQuestionBlock(
       .includes("multiple")
   ) {
 
-    const choiceRegex =
-      /(?:^|\s)([WXYZ])\)\s*(.*?)(?=\s+[WXYZ]\)\s|$)/gi;
+    const answerMatch =
+      answer.match(
+        /^([WXYZ])\)\s*(.*)$/i
+      );
 
 
-    let match;
+    if (answerMatch) {
 
-
-    while (
-      (match =
-        choiceRegex.exec(
-          questionText
-        ))
-    ) {
-
-      choices[
-        match[1].toUpperCase()
-      ] =
-        match[2].trim();
+      answer =
+        `${answerMatch[1].toUpperCase()}) ${answerMatch[2].trim()}`;
 
     }
-
-
-    /*
-      Remove choices from the stem.
-    */
-
-    questionText =
-      questionText
-        .replace(
-          /\s+[WXYZ]\)\s+.*?(?=\s+[WXYZ]\)\s|$)/gi,
-          ""
-        )
-        .trim();
-
   }
+
+
+  answer =
+    answer
+      .replace(
+        /\s*\(ACCEPT:.*?\)/gi,
+        ""
+      )
+      .trim();
 
 
   return {
@@ -544,147 +359,124 @@ function parseQuestionBlock(
 
     format,
 
-    text: questionText,
+    text:
+      stemLines
+        .join(" ")
+        .replace(/\s+/g, " ")
+        .trim(),
 
     choices,
 
     answer
 
   };
-
 }
 
 
-/* =========================================================
-   PARSE ENTIRE PACKET
-   ========================================================= */
+/* ─────────────────────────────
+   PARSE ALL QUESTIONS
+───────────────────────────── */
 
 function parseQuestions(text) {
 
   text =
+    text.replace(
+      /High School Round \d+ Page \d+/gi,
+      ""
+    );
+
+
+  const lines =
     text
-      .replace(
-        /High School Round \d+ Page \d+/gi,
-        ""
-      );
-
-
-  /*
-    Find TOSS-UP and BONUS markers.
-
-    This keeps the packet's original order.
-  */
-
-  const markerRegex =
-    /\b(TOSS-UP|BONUS)\b/gi;
-
-
-  const markers = [];
-
-
-  let match;
-
-
-  while (
-    (match =
-      markerRegex.exec(text))
-  ) {
-
-    markers.push({
-
-      type:
-        match[1].toUpperCase(),
-
-      index:
-        match.index
-
-    });
-
-  }
+      .split("\n")
+      .map(line => line.trim())
+      .filter(Boolean);
 
 
   const results = [];
 
+  let currentType = null;
 
-  for (
-    let i = 0;
-    i < markers.length;
-    i++
-  ) {
-
-    const marker =
-      markers[i];
+  let currentBlock = [];
 
 
-    const start =
-      marker.index;
+  function finishBlock() {
+
+    if (!currentType || !currentBlock.length) {
+      return;
+    }
 
 
-    const end =
-      i + 1 < markers.length
-        ? markers[i + 1].index
-        : text.length;
-
-
-    let block =
-      text.substring(
-        start,
-        end
-      );
-
-
-    block =
-      block.replace(
-        /^(TOSS-UP|BONUS)\s*/i,
-        ""
-      );
+    const block =
+      currentBlock.join("\n");
 
 
     const question =
       parseQuestionBlock(
         block,
-        marker.type
+        currentType
       );
 
 
     if (question) {
-
       results.push(question);
-
     }
-
   }
 
 
-  return results;
+  for (const line of lines) {
 
+    if (/^TOSS-UP$/i.test(line)) {
+
+      finishBlock();
+
+      currentType = "TOSS-UP";
+      currentBlock = [];
+
+      continue;
+    }
+
+
+    if (/^BONUS$/i.test(line)) {
+
+      finishBlock();
+
+      currentType = "BONUS";
+      currentBlock = [];
+
+      continue;
+    }
+
+
+    if (currentType) {
+      currentBlock.push(line);
+    }
+  }
+
+
+  finishBlock();
+
+
+  return results;
 }
 
 
-/* =========================================================
-   LOAD PACKETS.JSON
-   ========================================================= */
+/* ─────────────────────────────
+   PACKETS
+───────────────────────────── */
 
 async function loadPackets() {
 
   try {
 
-    info.textContent =
-      "Loading packets...";
-
-
     const response =
-      await fetch(
-        "/packets.json"
-      );
+      await fetch("/packets.json");
 
 
     if (!response.ok) {
-
       throw new Error(
-        `packets.json returned ${response.status}`
+        "Could not load packets.json"
       );
-
     }
 
 
@@ -692,36 +484,27 @@ async function loadPackets() {
       await response.json();
 
 
-    packetSelect.innerHTML =
-      "";
+    packetSelect.innerHTML = "";
 
 
-    packets.forEach(
-      (packet, index) => {
+    packets.forEach((packet, index) => {
 
-        const option =
-          document.createElement(
-            "option"
-          );
+      const option =
+        document.createElement("option");
 
+      option.value = index;
 
-        option.value =
-          index;
+      option.textContent =
+        packet.name;
 
+      packetSelect.appendChild(option);
 
-        option.textContent =
-          packet.name;
+    });
 
 
-        packetSelect.appendChild(
-          option
-        );
-
-      }
-    );
-
-
-    await loadPacket(0);
+    if (packets.length) {
+      await loadPacket(0);
+    }
 
 
   } catch (error) {
@@ -731,67 +514,47 @@ async function loadPackets() {
     info.textContent =
       "Could not load packets.";
 
-    questionDiv.textContent =
-      error.message;
-
   }
-
 }
 
 
-/* =========================================================
+/* ─────────────────────────────
    LOAD PACKET
-   ========================================================= */
+───────────────────────────── */
 
 async function loadPacket(index) {
 
+  stopSpeech();
+
+
+  const packet =
+    packets[index];
+
+
+  if (!packet) {
+    return;
+  }
+
+
   try {
 
-    stopSpeech();
-
-
-    current = 0;
-
-    state = "question";
-
-    answerDiv.textContent =
-      "";
+    info.textContent =
+      "Loading packet...";
 
 
     const text =
-      await readPDF(
-        packets[index].file
-      );
-
-
-    console.log(
-      "EXTRACTED PDF TEXT:",
-      text
-    );
+      await readPDF(packet.file);
 
 
     allQuestions =
       parseQuestions(text);
 
 
-    console.log(
-      "PARSED QUESTIONS:",
-      allQuestions
-    );
-
-
-    if (
-      allQuestions.length === 0
-    ) {
-
-      throw new Error(
-        "No Science Bowl questions were detected."
-      );
-
-    }
+    current = 0;
 
 
     buildSubjectList();
+
 
     applySubjectFilter();
 
@@ -801,85 +564,46 @@ async function loadPacket(index) {
     console.error(error);
 
     info.textContent =
-      "Could not load packet.";
-
-    questionDiv.textContent =
-      error.message;
+      "Could not load this packet.";
 
   }
-
 }
 
 
-/* =========================================================
-   SUBJECT LIST
-   ========================================================= */
+/* ─────────────────────────────
+   SUBJECT FILTER
+───────────────────────────── */
 
 function buildSubjectList() {
 
   const subjects =
-    [
-      ...new Set(
-        allQuestions.map(
-          q => q.subject
-        )
-      )
-    ];
+    [...new Set(
+      allQuestions.map(q => q.subject)
+    )];
 
 
   subjectSelect.innerHTML =
-    "";
+    `<option value="all">All Subjects</option>`;
 
 
-  const allOption =
-    document.createElement(
-      "option"
-    );
+  subjects.forEach(subject => {
 
+    const option =
+      document.createElement("option");
 
-  allOption.value =
-    "all";
+    option.value = subject;
 
+    option.textContent = subject;
 
-  allOption.textContent =
-    "All Subjects";
+    subjectSelect.appendChild(option);
 
-
-  subjectSelect.appendChild(
-    allOption
-  );
-
-
-  subjects.forEach(
-    subject => {
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-
-      option.value =
-        subject;
-
-
-      option.textContent =
-        formatSubject(subject);
-
-
-      subjectSelect.appendChild(
-        option
-      );
-
-    }
-  );
-
+  });
 }
 
 
-/* =========================================================
-   SUBJECT FILTER
-   ========================================================= */
+/* ─────────────────────────────
+   APPLY FILTER
+───────────────────────────── */
 
 function applySubjectFilter() {
 
@@ -887,9 +611,7 @@ function applySubjectFilter() {
     subjectSelect.value;
 
 
-  if (
-    selected === "all"
-  ) {
+  if (selected === "all") {
 
     questions =
       [...allQuestions];
@@ -898,9 +620,7 @@ function applySubjectFilter() {
 
     questions =
       allQuestions.filter(
-        q =>
-          q.subject ===
-          selected
+        q => q.subject === selected
       );
 
   }
@@ -908,514 +628,225 @@ function applySubjectFilter() {
 
   current = 0;
 
-  state = "question";
-
   showQuestion();
-
 }
 
 
-/* =========================================================
-   FORMAT SUBJECT
-   ========================================================= */
-
-function formatSubject(subject) {
-
-  return subject
-    .toLowerCase()
-    .replace(
-      /\b\w/g,
-      letter =>
-        letter.toUpperCase()
-    );
-
-}
-
-
-/* =========================================================
-   DISPLAY QUESTION
-   ========================================================= */
+/* ─────────────────────────────
+   SHOW QUESTION
+───────────────────────────── */
 
 function showQuestion() {
 
   stopSpeech();
 
-  answerDiv.textContent =
-    "";
+  answerDiv.innerHTML = "";
+
+  state = "question";
 
 
-  if (
-    questions.length === 0
-  ) {
-
-    questionDiv.textContent =
-      "No questions found.";
+  if (!questions.length) {
 
     info.textContent =
-      "No questions match this subject.";
+      "No questions found.";
+
+    questionDiv.innerHTML = "";
+
+    mainButton.textContent =
+      "🔊 READ QUESTION";
 
     return;
-
   }
+
+
+  if (current >= questions.length) {
+
+    info.textContent =
+      "🎀 PACKET COMPLETE";
+
+    questionDiv.innerHTML = `
+      <div class="complete-message">
+        ✦ Packet Complete ✦
+      </div>
+    `;
+
+    mainButton.textContent =
+      "🎀 COMPLETE";
+
+    mainButton.disabled = true;
+
+    return;
+  }
+
+
+  mainButton.disabled = false;
 
 
   const q =
     questions[current];
 
 
-  const typeName =
-    q.type === "TOSS-UP"
-      ? "TOSS-UP"
-      : "BONUS";
+  info.textContent =
+    `Question ${current + 1} of ${questions.length}`;
 
 
   questionDiv.innerHTML = `
 
     <div class="question-label">
-
-      ${formatSubject(q.subject)}
-      ·
-      ${typeName}
-      ${q.number}
-
+      ${q.subject} · ${q.type} ${q.number}
     </div>
 
     <div class="question-format">
-
-      ${escapeHTML(q.format)}
-
+      ${q.format}
     </div>
 
     <div class="question-text">
-
       ${escapeHTML(q.text)}
-
     </div>
 
-    ${
-      hasChoices(q)
-        ? renderChoices(q)
-        : ""
-    }
+    ${renderChoices(q)}
 
   `;
 
 
-  info.textContent =
-    `${current + 1} of ${questions.length}`;
-
-
-  state =
-    "question";
-
-
   mainButton.textContent =
     "🔊 READ QUESTION";
-
 }
 
 
-/* =========================================================
+/* ─────────────────────────────
    CHOICES
-   ========================================================= */
-
-function hasChoices(q) {
-
-  return (
-    q.choices.W ||
-    q.choices.X ||
-    q.choices.Y ||
-    q.choices.Z
-  );
-
-}
-
+───────────────────────────── */
 
 function renderChoices(q) {
+
+  if (
+    !q.format
+      .toLowerCase()
+      .includes("multiple")
+  ) {
+
+    return "";
+  }
+
+
+  const letters =
+    ["W", "X", "Y", "Z"];
+
 
   return `
 
     <div class="choices">
 
-      ${renderChoice(
-        "W",
-        q.choices.W
-      )}
+      ${letters.map(letter => `
 
-      ${renderChoice(
-        "X",
-        q.choices.X
-      )}
+        <div class="choice">
 
-      ${renderChoice(
-        "Y",
-        q.choices.Y
-      )}
+          <span class="choice-letter">
+            ${letter}
+          </span>
 
-      ${renderChoice(
-        "Z",
-        q.choices.Z
-      )}
+          <span class="choice-text">
+            ${escapeHTML(q.choices[letter])}
+          </span>
+
+        </div>
+
+      `).join("")}
 
     </div>
 
   `;
-
 }
 
 
-function renderChoice(
-  letter,
-  text
-) {
-
-  if (!text) return "";
-
-  return `
-
-    <div class="choice">
-
-      <span class="choice-letter">
-        ${letter}
-      </span>
-
-      ${escapeHTML(text)}
-
-    </div>
-
-  `;
-
-}
-
-
-/* =========================================================
+/* ─────────────────────────────
    ESCAPE HTML
-   ========================================================= */
+───────────────────────────── */
 
 function escapeHTML(text) {
 
-  return String(text)
+  const div =
+    document.createElement("div");
 
-    .replace(
-      /&/g,
-      "&amp;"
-    )
+  div.textContent =
+    text || "";
 
-    .replace(
-      /</g,
-      "&lt;"
-    )
-
-    .replace(
-      />/g,
-      "&gt;"
-    )
-
-    .replace(
-      /"/g,
-      "&quot;"
-    )
-
-    .replace(
-      /'/g,
-      "&#039;"
-    );
-
+  return div.innerHTML;
 }
 
 
-/* =========================================================
-   STOP SPEECH
-   ========================================================= */
+/* ─────────────────────────────
+   SPEECH
+───────────────────────────── */
 
 function stopSpeech() {
 
-  /*
-    Invalidate any currently running
-    speech sequence.
-  */
-
   speechRun++;
-
-
-  /*
-    Cancel the actual browser speech.
-  */
 
   speechSynthesis.cancel();
 
+  state = "question";
 }
 
 
-/* =========================================================
-   SPEAK ONE SECTION
-   ========================================================= */
+/* Wait helper */
 
-function createUtterance(text) {
+function wait(ms, run) {
 
-  const utterance =
-    new SpeechSynthesisUtterance(
-      text
-    );
+  return new Promise(resolve => {
 
+    setTimeout(() => {
 
-  utterance.rate =
-    Number(
-      speedSelect.value
-    );
+      if (run !== speechRun) {
+        resolve(false);
+        return;
+      }
 
+      resolve(true);
 
-  const voice =
-    getSelectedVoice();
+    }, ms);
 
-
-  if (voice) {
-
-    utterance.voice =
-      voice;
-
-  }
-
-
-  return utterance;
-
+  });
 }
 
 
-/* =========================================================
-   READ SCIENCE BOWL QUESTION
-   ========================================================= */
+/* Speak one chunk */
 
-function speakScienceBowlQuestion(q) {
+function speakChunk(text, run) {
 
-  /*
-    Stop anything currently speaking.
-  */
+  return new Promise(resolve => {
 
-  stopSpeech();
-
-
-  /*
-    Create a new speech run.
-
-    If INTERRUPT is clicked,
-    this number changes and all
-    future chunks become invalid.
-  */
-
-  const thisRun =
-    speechRun;
-
-
-  state =
-    "reading";
-
-
-  mainButton.textContent =
-    "🔊 READING...";
-
-
-  /*
-    Build the question pieces.
-  */
-
-  const parts = [];
-
-
-  parts.push(
-    formatSubject(q.subject)
-  );
-
-
-  parts.push(
-    q.type === "TOSS-UP"
-      ? "toss-up"
-      : "bonus"
-  );
-
-
-  parts.push(
-    `${q.number}`
-  );
-
-
-  parts.push(
-    q.format
-  );
-
-
-  parts.push(
-    q.text
-  );
-
-
-  /*
-    Add choices separately.
-  */
-
-  if (q.choices.W) {
-
-    parts.push(
-      `W. ${q.choices.W}`
-    );
-
-  }
-
-
-  if (q.choices.X) {
-
-    parts.push(
-      `X. ${q.choices.X}`
-    );
-
-  }
-
-
-  if (q.choices.Y) {
-
-    parts.push(
-      `Y. ${q.choices.Y}`
-    );
-
-  }
-
-
-  if (q.choices.Z) {
-
-    parts.push(
-      `Z. ${q.choices.Z}`
-    );
-
-  }
-
-
-  let index = 0;
-
-
-  function speakNext() {
-
-    /*
-      INTERRUPT was clicked.
-    */
-
-    if (
-      thisRun !== speechRun
-    ) {
-
+    if (run !== speechRun) {
+      resolve(false);
       return;
-
     }
-
-
-    /*
-      Everything has finished.
-    */
-
-    if (
-      index >= parts.length
-    ) {
-
-      state =
-        "answer";
-
-
-      mainButton.textContent =
-        "💗 REVEAL ANSWER";
-
-
-      return;
-
-    }
-
-
-    const currentPart =
-      parts[index];
 
 
     const utterance =
-      createUtterance(
-        currentPart
-      );
+      new SpeechSynthesisUtterance(text);
+
+
+    utterance.rate =
+      Number(speedSelect.value);
+
+
+    utterance.pitch = 1;
+
+
+    const voice =
+      getSelectedVoice();
+
+
+    if (voice) {
+      utterance.voice = voice;
+    }
 
 
     utterance.onend = () => {
 
-      /*
-        Don't continue if
-        INTERRUPT was clicked.
-      */
-
-      if (
-        thisRun !== speechRun
-      ) {
-
-        return;
-
-      }
-
-
-      const previous =
-        parts[index];
-
-
-      const next =
-        parts[index + 1];
-
-
-      const previousIsChoice =
-        /^[WXYZ]\./i.test(
-          previous
-        );
-
-
-      const nextIsChoice =
-        next &&
-        /^[WXYZ]\./i.test(
-          next
-        );
-
-
-      let pause =
-        PAUSES.betweenSections;
-
-
-      /*
-        Longer pause before W.
-      */
-
-      if (
-        nextIsChoice &&
-        !previousIsChoice
-      ) {
-
-        pause =
-          PAUSES.beforeChoices;
-
-      }
-
-
-      /*
-        Longer pause between
-        W, X, Y, Z.
-      */
-
-      if (
-        previousIsChoice &&
-        nextIsChoice
-      ) {
-
-        pause =
-          PAUSES.betweenChoices;
-
-      }
-
-
-      index++;
-
-
-      setTimeout(
-        speakNext,
-        pause
+      resolve(
+        run === speechRun
       );
 
     };
@@ -1423,21 +854,7 @@ function speakScienceBowlQuestion(q) {
 
     utterance.onerror = () => {
 
-      if (
-        thisRun !== speechRun
-      ) {
-
-        return;
-
-      }
-
-
-      state =
-        "answer";
-
-
-      mainButton.textContent =
-        "💗 REVEAL ANSWER";
+      resolve(false);
 
     };
 
@@ -1446,240 +863,463 @@ function speakScienceBowlQuestion(q) {
       utterance
     );
 
-  }
-
-
-  speakNext();
-
+  });
 }
 
 
-/* =========================================================
-   REVEAL ANSWER
-   ========================================================= */
+/* ─────────────────────────────
+   READ SCIENCE BOWL QUESTION
+───────────────────────────── */
 
-function revealAnswer() {
+async function speakScienceBowlQuestion(q) {
+
+  stopSpeech();
+
+
+  const run =
+    speechRun;
+
+
+  state = "reading";
+
+
+  mainButton.textContent =
+    "⏹ INTERRUPT";
+
+
+  const chunks = [];
+
+
+  chunks.push(
+    q.subject
+  );
+
+
+  chunks.push(
+    q.type === "TOSS-UP"
+      ? `Toss-up ${q.number}`
+      : `Bonus ${q.number}`
+  );
+
+
+  chunks.push(
+    q.format
+  );
+
+
+  chunks.push(
+    q.text
+  );
+
+
+  const isMultipleChoice =
+    q.format
+      .toLowerCase()
+      .includes("multiple");
+
+
+  if (isMultipleChoice) {
+
+    await wait(
+      PAUSES.beforeChoices,
+      run
+    );
+
+
+    if (run !== speechRun) {
+      return;
+    }
+
+
+    const letters =
+      ["W", "X", "Y", "Z"];
+
+
+    for (
+      let i = 0;
+      i < letters.length;
+      i++
+    ) {
+
+      const letter =
+        letters[i];
+
+
+      const choice =
+        q.choices[letter];
+
+
+      if (!choice) {
+        continue;
+      }
+
+
+      const ok =
+        await speakChunk(
+          `${letter}. ${choice}`,
+          run
+        );
+
+
+      if (!ok) {
+        return;
+      }
+
+
+      if (i < letters.length - 1) {
+
+        const stillOkay =
+          await wait(
+            PAUSES.betweenChoices,
+            run
+          );
+
+
+        if (!stillOkay) {
+          return;
+        }
+      }
+    }
+
+
+  } else {
+
+    for (
+      let i = 0;
+      i < chunks.length;
+      i++
+    ) {
+
+      const ok =
+        await speakChunk(
+          chunks[i],
+          run
+        );
+
+
+      if (!ok) {
+        return;
+      }
+
+
+      if (i < chunks.length - 1) {
+
+        const stillOkay =
+          await wait(
+            PAUSES.betweenSections,
+            run
+          );
+
+
+        if (!stillOkay) {
+          return;
+        }
+      }
+    }
+  }
+
+
+  if (run !== speechRun) {
+    return;
+  }
+
+
+  state = "answer";
+
+  mainButton.textContent =
+    "💗 REVEAL ANSWER";
+}
+
+
+/* ─────────────────────────────
+   REVEAL ANSWER
+───────────────────────────── */
+
+async function revealAnswer() {
 
   const q =
     questions[current];
 
 
-  if (!q) return;
-
-
-  stopSpeech();
-
-
-  if (!q.answer) {
-
-    answerDiv.textContent =
-      "Answer not detected.";
-
-  } else {
-
-    answerDiv.textContent =
-      `Answer: ${q.answer}`;
-
-    /*
-      Read the answer aloud.
-    */
-
-    const utterance =
-      createUtterance(
-        `The answer is ${q.answer}`
-      );
-
-
-    speechSynthesis.speak(
-      utterance
-    );
-
+  if (!q) {
+    return;
   }
 
 
-  state =
-    "next";
+  state = "revealing";
+
+
+  answerDiv.innerHTML = `
+
+    <div class="answer-card">
+
+      <span class="answer-label">
+        ANSWER
+      </span>
+
+      <span class="answer-text">
+        ${escapeHTML(q.answer)}
+      </span>
+
+    </div>
+
+  `;
 
 
   mainButton.textContent =
     "✨ NEXT QUESTION";
 
+
+  speechRun++;
+
+  speechSynthesis.cancel();
+
+
+  const utterance =
+    new SpeechSynthesisUtterance(
+      `The answer is ${q.answer}`
+    );
+
+
+  utterance.rate =
+    Number(speedSelect.value);
+
+
+  const voice =
+    getSelectedVoice();
+
+
+  if (voice) {
+    utterance.voice = voice;
+  }
+
+
+  speechSynthesis.speak(
+    utterance
+  );
+
+
+  state = "next";
 }
 
 
-/* =========================================================
+/* ─────────────────────────────
    MAIN BUTTON
-   ========================================================= */
+───────────────────────────── */
 
 mainButton.addEventListener(
   "click",
   () => {
 
-    if (
-      !questions.length
-    ) {
-
+    if (!questions.length) {
       return;
-
     }
 
 
-    /*
-      READ QUESTION
-    */
-
-    if (
-      state === "question"
-    ) {
+    if (state === "question") {
 
       speakScienceBowlQuestion(
         questions[current]
       );
 
       return;
-
     }
 
 
-    /*
-      If currently reading,
-      clicking the main button
-      does nothing.
+    if (state === "reading") {
 
-      Use INTERRUPT instead.
-    */
+      stopSpeech();
 
-    if (
-      state === "reading"
-    ) {
-
-      return;
-
-    }
-
-
-    /*
-      REVEAL ANSWER
-    */
-
-    if (
-      state === "answer"
-    ) {
-
-      revealAnswer();
-
-      return;
-
-    }
-
-
-    /*
-      NEXT QUESTION
-    */
-
-    if (
-      state === "next"
-    ) {
-
-      if (
-        current <
-        questions.length - 1
-      ) {
-
-        current++;
-
-        showQuestion();
-
-      } else {
-
-        info.textContent =
-          "You finished the packet! 🎀";
-
-        mainButton.textContent =
-          "🎀 PACKET COMPLETE";
-
-      }
-
-    }
-
-  }
-);
-
-
-/* =========================================================
-   INTERRUPT BUTTON
-   ========================================================= */
-
-interruptButton.addEventListener(
-  "click",
-  () => {
-
-    /*
-      Kill the current speech
-      AND invalidate any pending
-      delayed speech chunks.
-    */
-
-    stopSpeech();
-
-
-    /*
-      IMPORTANT:
-
-      Interrupt does NOT reveal
-      the answer.
-
-      If we were reading, go directly
-      to the reveal-answer state.
-    */
-
-    if (
-      state === "reading"
-    ) {
-
-      state =
-        "answer";
-
+      state = "answer";
 
       mainButton.textContent =
         "💗 REVEAL ANSWER";
 
+      return;
+    }
+
+
+    if (state === "answer") {
+
+      revealAnswer();
+
+      return;
+    }
+
+
+    if (state === "next") {
+
+      current++;
+
+      showQuestion();
+
+      return;
     }
 
   }
 );
 
 
-/* =========================================================
-   PACKET SELECT
-   ========================================================= */
+/* ─────────────────────────────
+   REPLAY
+───────────────────────────── */
 
-packetSelect.addEventListener(
-  "change",
+replayButton.addEventListener(
+  "click",
   () => {
 
-    loadPacket(
-      Number(
-        packetSelect.value
-      )
+    if (!questions.length) {
+      return;
+    }
+
+
+    speakScienceBowlQuestion(
+      questions[current]
     );
 
   }
 );
 
 
-/* =========================================================
-   SUBJECT SELECT
-   ========================================================= */
+/* ─────────────────────────────
+   PACKET CHANGE
+───────────────────────────── */
 
-subjectSelect.addEventListener(
+packetSelect.addEventListener(
   "change",
-  applySubjectFilter
+  () => {
+
+    loadPacket(
+      Number(packetSelect.value)
+    );
+
+  }
 );
 
 
-/* =========================================================
+/* ─────────────────────────────
+   SUBJECT CHANGE
+───────────────────────────── */
+
+subjectSelect.addEventListener(
+  "change",
+  () => {
+
+    applySubjectFilter();
+
+  }
+);
+
+
+/* ─────────────────────────────
+   CONTACT POPUP
+───────────────────────────── */
+
+const contactButton =
+  document.getElementById(
+    "contactButton"
+  );
+
+const contactModal =
+  document.getElementById(
+    "contactModal"
+  );
+
+const closeContact =
+  document.getElementById(
+    "closeContact"
+  );
+
+const copyDiscord =
+  document.getElementById(
+    "copyDiscord"
+  );
+
+
+contactButton.addEventListener(
+  "click",
+  () => {
+
+    contactModal.classList.add(
+      "show"
+    );
+
+  }
+);
+
+
+closeContact.addEventListener(
+  "click",
+  () => {
+
+    contactModal.classList.remove(
+      "show"
+    );
+
+  }
+);
+
+
+contactModal.addEventListener(
+  "click",
+  event => {
+
+    if (
+      event.target === contactModal
+    ) {
+
+      contactModal.classList.remove(
+        "show"
+      );
+
+    }
+
+  }
+);
+
+
+copyDiscord.addEventListener(
+  "click",
+  async () => {
+
+    try {
+
+      await navigator.clipboard.writeText(
+        "@argi9"
+      );
+
+
+      const originalText =
+        copyDiscord.textContent;
+
+
+      copyDiscord.textContent =
+        "copied ♡";
+
+
+      setTimeout(() => {
+
+        copyDiscord.textContent =
+          originalText;
+
+      }, 1500);
+
+
+    } catch (error) {
+
+      console.error(
+        "Could not copy Discord username:",
+        error
+      );
+
+    }
+
+  }
+);
+
+
+/* ─────────────────────────────
    START
-   ========================================================= */
+───────────────────────────── */
 
 loadPackets();
