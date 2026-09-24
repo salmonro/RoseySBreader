@@ -1,15 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SciBowl Reader</title>
+
+  <title>SciBowl Reader 🎀</title>
+
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
 <header>
+
   <h1>SCI BOWL READER</h1>
 
   <select id="packet">
@@ -18,12 +22,6 @@
 
   <select id="subject">
     <option value="all">All Subjects</option>
-    <option value="Biology">Biology</option>
-    <option value="Chemistry">Chemistry</option>
-    <option value="Physics">Physics</option>
-    <option value="Math">Math</option>
-    <option value="Earth Science">Earth Science</option>
-    <option value="Energy">Energy</option>
   </select>
 
   <select id="speed">
@@ -34,11 +32,18 @@
     <option value="2">2×</option>
   </select>
 
-  <select id="voice"></select>
+  <select id="voice">
+    <option>Loading voices...</option>
+  </select>
+
 </header>
 
+
 <main>
-  <div id="info">Loading...</div>
+
+  <div id="info">
+    Loading...
+  </div>
 
   <div id="question">
     Loading...
@@ -47,16 +52,24 @@
   <div id="answer"></div>
 
   <div class="controls">
-    <button id="mainButton">🔊 READ QUESTION</button>
-    <button id="replay">↻ REPLAY</button>
+
+    <button id="mainButton">
+      🔊 READ QUESTION
+    </button>
+
+    <button id="replay">
+      ↻ REPLAY
+    </button>
+
   </div>
+
 </main>
 
-<!-- PDF.js -->
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
-<!-- Our code -->
 <script src="app.js"></script>
 
 </body>
+
 </html>
