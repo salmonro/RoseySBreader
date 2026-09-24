@@ -1,9 +1,32 @@
-[ 
-  { 
-    "name": "NSB Set 1 Round 1", 
-    "file": "/packets/NSBset1round1.pdf" 
-  }, 
-  { "name": "MIT Science Bowl Packet", 
-    "file": "/packets/packet2.pdf" 
-  } 
+[
+  {
+    "name": "Set 1 · Round 1",
+    "file": "/packets/NSBset1round1.pdf",
+    "category": "NSB"
+  },
+  {
+    "name": "Set 2 · Round 1",
+    "file": "/packets/NSBset2round1.pdf",
+    "category": "NSB"
+  },
+  {
+    "name": "Set 3 · Round 1",
+    "file": "/packets/NSBset3round1.pdf",
+    "category": "NSB"
+  },
+  {
+    "name": "Set 1",
+    "file": "/packets/MITset1.pdf",
+    "category": "MIT Science Bowl"
+  },
+  {
+    "name": "Set 2",
+    "file": "/packets/MITset2.pdf",
+    "category": "MIT Science Bowl"
+  },
+  {
+    "name": "Set 1",
+    "file": "/packets/AVHSset1.pdf",
+    "category": "AVHS Science Bowl"
+  }
 ]
