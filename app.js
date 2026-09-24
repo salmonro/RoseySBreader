@@ -1090,7 +1090,7 @@ async function speakNatural(text, run) {
     const ok = await speakChunk(word, run);
     if (!ok) return false;
 
-    const stillRunning = await naturalPause(60, run);
+    const stillRunning = await naturalPause(20, run);
     if (!stillRunning) return false;
   }
 
