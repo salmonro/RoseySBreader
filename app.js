@@ -83,8 +83,8 @@ const copyEmail =
 
 const PAUSES = {
   betweenSections: 300,
-  beforeChoices: 500,
-  betweenChoices: 500
+  beforeChoices: 400,
+  betweenChoices: 400
 };
 
 
