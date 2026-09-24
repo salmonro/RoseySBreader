@@ -542,43 +542,29 @@ main {
 /* ============================== */
 
 .controls {
-
-  position:
-    fixed;
-
-  left:
-    50%;
-
-  bottom:
-    25px;
-
-  transform:
-    translateX(-50%);
-
-  display:
-    flex;
-
-  justify-content:
-    center;
-
-  align-items:
-    center;
-
-  gap:
-    12px;
-
-  width:
-    max-content;
-
-  z-index:
-    500;
-
-  margin:
-    0;
-
-  padding:
-    0;
-
+  position: fixed;
+  
+  left: 50%;
+  
+  bottom: 90px;
+  
+  transform: translateX(-50%);
+  
+  display: flex;
+  
+  justify-content: center;
+  
+  align-items: center;
+  
+  gap: 12px;
+  
+  width: max-content;
+  
+  z-index: 500;
+  
+  margin: 0;
+  
+  padding: 0;
 }
 
 
