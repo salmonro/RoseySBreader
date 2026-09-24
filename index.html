@@ -7,6 +7,15 @@
 
   <title>SciBowl Reader 🎀</title>
 
+  <!-- Cute fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap"
+    rel="stylesheet"
+  >
+
   <link rel="stylesheet" href="style.css">
 </head>
 
@@ -14,7 +23,10 @@
 
 <header>
 
-  <h1>SCI BOWL READER</h1>
+  <div class="brand">
+    <div class="brand-title">SCI BOWL READER</div>
+    <div class="brand-subtitle">♡ your cute little question reader ♡</div>
+  </div>
 
   <select id="packet">
     <option>Loading packets...</option>
@@ -41,6 +53,10 @@
 
 <main>
 
+  <div class="decorations">
+    ♡　✦　୨୧　✦　♡
+  </div>
+
   <div id="info">
     Loading...
   </div>
@@ -57,8 +73,8 @@
       🔊 READ QUESTION
     </button>
 
-    <button id="interrupt">
-      ⏹ INTERRUPT
+    <button id="replay">
+      ↻ REPLAY
     </button>
 
   </div>
