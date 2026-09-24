@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Rosey SciBowl Reader 🎀</title>
+  <title>Rosey Sci Bowl Reader 🎀</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,9 +20,13 @@
 <body>
 
 <header>
+
   <div class="brand">
-    <div class="brand-title">SCI BOWL READER</div>
-    <div class="brand-subtitle">♡ your cute little question reader ♡</div>
+    <div class="brand-title">ROSEY SCI BOWL READER</div>
+
+    <div class="brand-subtitle">
+      ♡ no more losing practice time, have me read instead! ♡
+    </div>
   </div>
 
   <select id="packet">
@@ -44,6 +48,7 @@
   <select id="voice">
     <option>Loading voices...</option>
   </select>
+
 </header>
 
 
@@ -64,14 +69,19 @@
   <div id="answer"></div>
 
   <div class="controls">
-    <button id="mainButton">🔊 READ QUESTION</button>
-    <button id="replay">↻ REPLAY</button>
+
+    <button id="mainButton">
+      🔊 READ QUESTION
+    </button>
+
+    <button id="replay">
+      ↻ REPLAY
+    </button>
+
   </div>
 
 </main>
 
-
-<!-- CONTACT FOOTER -->
 
 <footer class="site-footer">
 
@@ -97,8 +107,9 @@
     </button>
 
     <div class="contact-title">
-      Contact ♡
+      Contact
     </div>
+
 
     <div class="contact-item">
 
@@ -112,13 +123,19 @@
 
     </div>
 
+
     <div class="contact-item">
 
       <span>
         Email: tinosciencebowl@gmail.com
       </span>
 
+      <button id="copyEmail" class="copy-button">
+        copy
+      </button>
+
     </div>
+
 
     <div class="contact-heart">
       ♡
@@ -128,8 +145,6 @@
 
 </div>
 
-
-<!-- PDF.JS -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
