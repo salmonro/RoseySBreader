@@ -7,18 +7,32 @@ body {
   min-height: 100vh;
 
   background:
-    radial-gradient(circle at 10% 10%, #ffd6e9 0, transparent 28%),
-    radial-gradient(circle at 90% 20%, #e4d9ff 0, transparent 30%),
-    linear-gradient(135deg, #fff5fa, #f8f3ff);
+    radial-gradient(
+      circle at 10% 10%,
+      #ffd6e9 0,
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 90% 20%,
+      #e4d9ff 0,
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #fff5fa,
+      #f8f3ff
+    );
 
   color: #3d3040;
-  font-family: Arial, Helvetica, sans-serif;
+
+  font-family:
+    Arial,
+    Helvetica,
+    sans-serif;
 }
 
 
-/* =========================
-   HEADER
-   ========================= */
+/* HEADER */
 
 header {
   padding: 18px 24px;
@@ -28,11 +42,13 @@ header {
   gap: 10px;
   flex-wrap: wrap;
 
-  background: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.88);
 
   border-bottom: 2px solid #f4c5dc;
 
-  box-shadow: 0 4px 20px rgba(190, 120, 160, 0.12);
+  box-shadow:
+    0 4px 20px
+    rgba(190, 120, 160, 0.12);
 
   backdrop-filter: blur(10px);
 }
@@ -54,18 +70,15 @@ h1::before {
 }
 
 
-/* =========================
-   DROPDOWNS
-   ========================= */
+/* DROPDOWNS */
 
 select {
-  appearance: none;
-
   background: #fff;
 
   color: #60445b;
 
   border: 2px solid #edc4dc;
+
   border-radius: 12px;
 
   padding: 9px 13px;
@@ -77,7 +90,9 @@ select {
 
   outline: none;
 
-  box-shadow: 0 3px 10px rgba(200, 130, 170, 0.08);
+  box-shadow:
+    0 3px 10px
+    rgba(200, 130, 170, 0.08);
 }
 
 select:hover {
@@ -88,28 +103,39 @@ select:focus {
   border-color: #c994df;
 
   box-shadow:
-    0 0 0 3px rgba(201, 148, 223, 0.18);
+    0 0 0 3px
+    rgba(201, 148, 223, 0.18);
 }
 
 
-/* =========================
-   MAIN
-   ========================= */
+/* MAIN */
 
 main {
   max-width: 1000px;
 
   margin: 0 auto;
 
-  padding: 55px 25px 100px;
+  padding: 45px 25px 100px;
 
   text-align: center;
 }
 
+main::before {
+  content: "୨୧  ✦  ♡  ✦  ୨୧";
 
-/* =========================
-   INFO
-   ========================= */
+  display: block;
+
+  margin-bottom: 18px;
+
+  color: #d987b1;
+
+  font-size: 20px;
+
+  letter-spacing: 5px;
+}
+
+
+/* INFO */
 
 #info {
   color: #a47b99;
@@ -117,49 +143,126 @@ main {
   font-size: 14px;
   font-weight: 600;
 
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 
 
-/* =========================
-   QUESTION CARD
-   ========================= */
+/* QUESTION CARD */
 
 #question {
   max-width: 900px;
 
-  min-height: 260px;
+  min-height: 330px;
 
   margin: 0 auto;
 
-  padding: 42px 45px;
+  padding: 35px 45px;
 
-  background: rgba(255, 255, 255, 0.86);
+  background:
+    rgba(255, 255, 255, 0.9);
 
   border: 2px solid #f0c9df;
 
   border-radius: 24px;
 
   box-shadow:
-    0 10px 35px rgba(190, 120, 160, 0.13),
-    0 2px 8px rgba(190, 120, 160, 0.08);
-
-  font-size: 27px;
-  line-height: 1.6;
+    0 10px 35px
+    rgba(190, 120, 160, 0.13);
 
   color: #423342;
+
+  text-align: left;
 }
 
-#question strong {
+
+/* QUESTION LABEL */
+
+.question-label {
+  margin-bottom: 7px;
+
   color: #d95791;
 
-  font-size: 18px;
+  font-size: 21px;
+  font-weight: 800;
+
+  text-align: center;
 }
 
 
-/* =========================
-   ANSWER
-   ========================= */
+/* QUESTION TYPE */
+
+.question-format {
+  margin-bottom: 25px;
+
+  color: #b98bb0;
+
+  font-size: 14px;
+  font-weight: 600;
+
+  text-align: center;
+}
+
+
+/* QUESTION TEXT */
+
+.question-text {
+  font-size: 25px;
+
+  line-height: 1.6;
+
+  text-align: center;
+}
+
+
+/* CHOICES */
+
+.choices {
+  margin-top: 25px;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, 1fr);
+
+  gap: 10px;
+}
+
+.choice {
+  padding: 12px 15px;
+
+  background: #fff7fb;
+
+  border: 1px solid #f0c9df;
+
+  border-radius: 12px;
+
+  font-size: 17px;
+
+  line-height: 1.4;
+}
+
+.choice-letter {
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  width: 28px;
+  height: 28px;
+
+  margin-right: 7px;
+
+  border-radius: 50%;
+
+  background: #f4b2d1;
+
+  color: white;
+
+  font-weight: 800;
+}
+
+
+/* ANSWER */
 
 #answer {
   min-height: 45px;
@@ -172,19 +275,20 @@ main {
   font-weight: 800;
 
   text-shadow:
-    0 2px 8px rgba(179, 91, 197, 0.18);
+    0 2px 8px
+    rgba(179, 91, 197, 0.18);
 }
 
 
-/* =========================
-   BUTTONS
-   ========================= */
+/* BUTTONS */
 
 .controls {
-  margin-top: 28px;
+  margin-top: 25px;
 
   display: flex;
+
   justify-content: center;
+
   align-items: center;
 
   gap: 12px;
@@ -194,6 +298,7 @@ main {
 
 button {
   border: none;
+
   border-radius: 14px;
 
   padding: 15px 25px;
@@ -210,7 +315,8 @@ button {
   border: 2px solid #edc7dc;
 
   box-shadow:
-    0 5px 15px rgba(190, 120, 160, 0.10);
+    0 5px 15px
+    rgba(190, 120, 160, 0.10);
 
   transition:
     transform 0.12s,
@@ -222,7 +328,8 @@ button:hover {
   background: #fff5fa;
 
   box-shadow:
-    0 7px 20px rgba(190, 120, 160, 0.17);
+    0 7px 20px
+    rgba(190, 120, 160, 0.17);
 
   transform: translateY(-1px);
 }
@@ -232,9 +339,7 @@ button:active {
 }
 
 
-/* =========================
-   MAIN BUTTON
-   ========================= */
+/* MAIN BUTTON */
 
 #mainButton {
   min-width: 285px;
@@ -253,7 +358,8 @@ button:active {
   font-size: 19px;
 
   box-shadow:
-    0 7px 22px rgba(205, 112, 166, 0.25);
+    0 7px 22px
+    rgba(205, 112, 166, 0.25);
 }
 
 #mainButton:hover {
@@ -265,41 +371,19 @@ button:active {
     );
 
   box-shadow:
-    0 9px 27px rgba(205, 112, 166, 0.32);
+    0 9px 27px
+    rgba(205, 112, 166, 0.32);
 }
 
 
-/* =========================
-   REPLAY
-   ========================= */
+/* REPLAY */
 
 #replay {
   min-width: 135px;
 }
 
 
-/* =========================
-   CUTE DECORATION
-   ========================= */
-
-main::before {
-  content: "୨୧  ✦  ♡  ✦  ୨୧";
-
-  display: block;
-
-  margin-bottom: 18px;
-
-  color: #d987b1;
-
-  font-size: 20px;
-
-  letter-spacing: 5px;
-}
-
-
-/* =========================
-   MOBILE
-   ========================= */
+/* MOBILE */
 
 @media (max-width: 700px) {
 
@@ -317,15 +401,27 @@ main::before {
   }
 
   main {
-    padding: 35px 15px 70px;
+    padding: 30px 15px 70px;
   }
 
   #question {
-    padding: 30px 20px;
+    padding: 28px 18px;
 
-    font-size: 21px;
+    min-height: 300px;
 
     border-radius: 20px;
+  }
+
+  .question-label {
+    font-size: 18px;
+  }
+
+  .question-text {
+    font-size: 21px;
+  }
+
+  .choices {
+    grid-template-columns: 1fr;
   }
 
   #answer {
