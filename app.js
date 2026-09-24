@@ -1,89 +1,65 @@
-```javascript
-import * as pdfjsLib from
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs";
-
 pdfjsLib.GlobalWorkerOptions.workerSrc =
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs";
+  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 let packets = [];
+let allQuestions = [];
 let questions = [];
 let current = 0;
 let state = "question";
+let lastSpeech = "";
 
 const packetSelect = document.getElementById("packet");
 const subjectSelect = document.getElementById("subject");
 const speedSelect = document.getElementById("speed");
 const voiceSelect = document.getElementById("voice");
 
+const info = document.getElementById("info");
 const questionDiv = document.getElementById("question");
 const answerDiv = document.getElementById("answer");
-const infoDiv = document.getElementById("info");
 
 const mainButton = document.getElementById("mainButton");
 const replayButton = document.getElementById("replay");
 
 
-// -------------------------
-// VOICES
-// -------------------------
+/* ---------------- VOICES ---------------- */
 
 function loadVoices() {
-  const voices = speechSynthesis
-    .getVoices()
-    .filter(v => v.lang.startsWith("en"));
+  const voices = speechSynthesis.getVoices();
 
   voiceSelect.innerHTML = "";
 
-  voices.forEach((voice, i) => {
-    const option = document.createElement("option");
-
-    option.value = i;
-    option.textContent = voice.name;
-
-    voiceSelect.appendChild(option);
-  });
+  voices
+    .filter(v => v.lang.startsWith("en"))
+    .forEach((voice, i) => {
+      const option = document.createElement("option");
+      option.value = i;
+      option.textContent = voice.name;
+      voiceSelect.appendChild(option);
+    });
 }
 
 speechSynthesis.onvoiceschanged = loadVoices;
 loadVoices();
 
 
-// -------------------------
-// SPEECH
-// -------------------------
-
-function speak(text) {
-  speechSynthesis.cancel();
-
-  const speech = new SpeechSynthesisUtterance(text);
-
-  speech.rate = Number(speedSelect.value);
-
-  const voices = speechSynthesis
-    .getVoices()
-    .filter(v => v.lang.startsWith("en"));
-
-  if (voices[voiceSelect.value]) {
-    speech.voice = voices[voiceSelect.value];
-  }
-
-  speechSynthesis.speak(speech);
-}
-
-
-// -------------------------
-// PDF TEXT EXTRACTION
-// -------------------------
+/* ---------------- PDF READER ---------------- */
 
 async function readPDF(url) {
 
-  const pdf = await pdfjsLib.getDocument(url).promise;
+  info.textContent = "Loading PDF...";
 
-  let pages = [];
+  const pdf = await pdfjsLib
+    .getDocument(url)
+    .promise;
 
-  for (let i = 1; i <= pdf.numPages; i++) {
+  let fullText = "";
 
-    const page = await pdf.getPage(i);
+  for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+
+    info.textContent =
+      `Reading PDF... page ${pageNum}/${pdf.numPages}`;
+
+    const page = await pdf.getPage(pageNum);
 
     const content = await page.getTextContent();
 
@@ -91,76 +67,78 @@ async function readPDF(url) {
       .map(item => item.str)
       .join(" ");
 
-    pages.push(text);
+    fullText += "\n" + text;
   }
 
-  return pages.join("\n");
+  return fullText;
 }
 
 
-// -------------------------
-// BASIC QUESTION PARSER
-// -------------------------
+/* ---------------- QUESTION PARSER ---------------- */
 
 function parseQuestions(text) {
 
   const results = [];
 
-  /*
-    This parser expects something roughly like:
-
-    1) Question text...
-    W. option
-    X. option
-    Y. option
-    Z. option
-    ANSWER: W
-  */
-
+  // Try to find numbered questions.
   const chunks = text.split(
-    /(?:^|\s)(?:Question\s*)?\d+[\.\):]/gi
+    /(?=(?:Question\s*)?\d{1,3}[\.\):]\s)/gi
   );
 
   for (const chunk of chunks) {
 
-    if (chunk.trim().length < 30)
-      continue;
+    const match = chunk.match(
+      /^(?:Question\s*)?(\d{1,3})[\.\):]\s*(.*)/is
+    );
 
-    const answerMatch =
-      chunk.match(/(?:ANSWER|Answer|ANS)\s*[:\-]?\s*([WXYZ])/i);
+    if (!match) continue;
 
-    const choiceMatch =
-      chunk.match(
-        /W[\.\)]\s*(.*?)\s+X[\.\)]\s*(.*?)\s+Y[\.\)]\s*(.*?)\s+Z[\.\)]\s*(.*?)(?=\s+(?:ANSWER|Answer|ANS)\b|$)/is
-      );
+    const number = match[1];
+    let body = match[2].replace(/\s+/g, " ").trim();
 
-    let question = chunk;
-    let choices = null;
-    let answer = "";
+    if (body.length < 20) continue;
 
-    if (answerMatch) {
-      answer = answerMatch[1].toUpperCase();
-    }
+    // Find answer choices.
+    const choiceMatch = body.match(
+      /(?:^|\s)(?:W[\.\):]\s*)(.*?)(?:\s+X[\.\):]\s*)(.*?)(?:\s+Y[\.\):]\s*)(.*?)(?:\s+Z[\.\):]\s*)(.*?)(?=$)/i
+    );
+
+    let choices = {
+      W: "",
+      X: "",
+      Y: "",
+      Z: ""
+    };
 
     if (choiceMatch) {
-
       choices = {
         W: choiceMatch[1].trim(),
         X: choiceMatch[2].trim(),
         Y: choiceMatch[3].trim(),
         Z: choiceMatch[4].trim()
       };
-
-      question = chunk.substring(
-        0,
-        chunk.search(/W[\.\)]/i)
-      );
     }
 
+    // Try to detect answer.
+    const answerMatch = body.match(
+      /(?:answer|ans\.?)\s*[:\-]?\s*([WXYZ])/i
+    );
+
+    const answer = answerMatch
+      ? answerMatch[1].toUpperCase()
+      : "";
+
+    // Remove answer key text from displayed question.
+    body = body
+      .replace(
+        /(?:answer|ans\.?)\s*[:\-]?\s*[WXYZ]/gi,
+        ""
+      )
+      .trim();
+
     results.push({
-      subject: detectSubject(question),
-      type: "Toss-Up",
-      question: question.trim(),
+      number,
+      text: body,
       choices,
       answer
     });
@@ -170,289 +148,312 @@ function parseQuestions(text) {
 }
 
 
-// -------------------------
-// SUBJECT DETECTION
-// -------------------------
+/* ---------------- PACKETS ---------------- */
 
-function detectSubject(text) {
+async function loadPackets() {
 
-  const t = text.toLowerCase();
+  try {
 
-  if (
-    /cell|gene|protein|organism|enzyme|dna|rna|biology|ecology/.test(t)
-  )
-    return "Biology";
+    const response = await fetch("/packets.json");
 
-  if (
-    /atom|molecule|reaction|chemical|acid|base|chemistry/.test(t)
-  )
-    return "Chemistry";
+    if (!response.ok) {
+      throw new Error("Could not load packets.json");
+    }
 
-  if (
-    /force|velocity|acceleration|energy|momentum|electric|physics/.test(t)
-  )
-    return "Physics";
+    packets = await response.json();
 
-  if (
-    /equation|integer|function|geometry|probability|math/.test(t)
-  )
-    return "Math";
+    packetSelect.innerHTML = "";
 
-  if (
-    /planet|star|earth|geology|atmosphere|astronomy/.test(t)
-  )
-    return "Earth Science";
+    packets.forEach((packet, index) => {
 
-  return "Other";
+      const option = document.createElement("option");
+
+      option.value = index;
+      option.textContent = packet.name;
+
+      packetSelect.appendChild(option);
+    });
+
+    await loadPacket(0);
+
+  } catch (error) {
+
+    console.error(error);
+
+    info.textContent = "Error loading packets.";
+    questionDiv.textContent = error.message;
+  }
 }
 
-
-// -------------------------
-// LOAD PACKET
-// -------------------------
 
 async function loadPacket(index) {
 
-  infoDiv.textContent = "Loading packet...";
+  try {
 
-  const packet = packets[index];
+    speechSynthesis.cancel();
 
-  const text = await readPDF(packet.file);
+    current = 0;
+    state = "question";
 
-  questions = parseQuestions(text);
+    answerDiv.textContent = "";
 
-  current = 0;
+    info.textContent = "Loading packet...";
 
-  filterQuestions();
+    const text = await readPDF(
+      packets[index].file
+    );
 
+    console.log("PDF TEXT:", text);
+
+    allQuestions = parseQuestions(text);
+
+    console.log(
+      "QUESTIONS FOUND:",
+      allQuestions.length
+    );
+
+    applySubjectFilter();
+
+  } catch (error) {
+
+    console.error(error);
+
+    info.textContent = "Could not load PDF.";
+    questionDiv.textContent =
+      error.message;
+
+  }
 }
 
 
-// -------------------------
-// FILTER
-// -------------------------
+/* ---------------- FILTER ---------------- */
 
-function filterQuestions() {
+function applySubjectFilter() {
 
-  const packet = packets[packetSelect.value];
+  const subject = subjectSelect.value;
 
-  const textQuestions =
-    questions.length
-      ? questions
-      : [];
+  if (subject === "all") {
+    questions = [...allQuestions];
+  } else {
 
-  if (subjectSelect.value === "all") {
-    questions = textQuestions;
+    // For now, keep all questions because
+    // packet subject formatting varies.
+    questions = [...allQuestions];
   }
+
+  current = 0;
+  state = "question";
 
   showQuestion();
 }
 
 
-// -------------------------
-// SHOW QUESTION
-// -------------------------
+/* ---------------- DISPLAY ---------------- */
 
 function showQuestion() {
 
-  if (!questions[current]) {
+  if (!questions.length) {
 
-    questionDiv.textContent = "Packet finished!";
-    answerDiv.textContent = "";
+    questionDiv.textContent =
+      "No questions found.";
 
-    mainButton.textContent = "START OVER";
+    info.textContent =
+      "The PDF loaded, but the question parser did not find any questions.";
+
+    mainButton.textContent =
+      "READ QUESTION";
 
     return;
   }
 
   const q = questions[current];
 
-  infoDiv.textContent =
-    `${q.subject} • ${q.type} • ${current + 1}/${questions.length}`;
-
-  let html = `<p>${q.question}</p>`;
-
-  if (q.choices) {
-
-    html += `
-      <p>
-        W. ${q.choices.W}<br>
-        X. ${q.choices.X}<br>
-        Y. ${q.choices.Y}<br>
-        Z. ${q.choices.Z}
-      </p>
-    `;
-  }
-
-  questionDiv.innerHTML = html;
+  questionDiv.innerHTML = `
+    <strong>Question ${q.number}</strong>
+    <br><br>
+    ${escapeHTML(q.text)}
+  `;
 
   answerDiv.textContent = "";
 
-  mainButton.textContent = "🔊 READ QUESTION";
+  info.textContent =
+    `Question ${current + 1} of ${questions.length}`;
+
+  mainButton.textContent =
+    "🔊 READ QUESTION";
 
   state = "question";
 }
 
 
-// -------------------------
-// READ QUESTION
-// -------------------------
+function escapeHTML(text) {
 
-function readQuestion() {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
+}
+
+
+/* ---------------- SPEECH ---------------- */
+
+function speak(text) {
+
+  speechSynthesis.cancel();
+
+  const utterance =
+    new SpeechSynthesisUtterance(text);
+
+  utterance.rate =
+    Number(speedSelect.value);
+
+  const voices =
+    speechSynthesis.getVoices();
+
+  const selected =
+    voices.filter(v =>
+      v.lang.startsWith("en")
+    )[voiceSelect.selectedIndex];
+
+  if (selected) {
+    utterance.voice = selected;
+  }
+
+  lastSpeech = text;
+
+  speechSynthesis.speak(utterance);
+}
+
+
+function readCurrentQuestion() {
 
   const q = questions[current];
 
-  let text = q.question;
+  if (!q) return;
 
-  if (q.choices) {
+  let speech = q.text;
 
-    text +=
-      ` W. ${q.choices.W}` +
-      ` X. ${q.choices.X}` +
-      ` Y. ${q.choices.Y}` +
+  if (q.choices.W) {
+    speech +=
+      ` W. ${q.choices.W}`;
+  }
+
+  if (q.choices.X) {
+    speech +=
+      ` X. ${q.choices.X}`;
+  }
+
+  if (q.choices.Y) {
+    speech +=
+      ` Y. ${q.choices.Y}`;
+  }
+
+  if (q.choices.Z) {
+    speech +=
       ` Z. ${q.choices.Z}`;
   }
 
-  speak(text);
+  speak(speech);
 }
 
 
-// -------------------------
-// REVEAL
-// -------------------------
+/* ---------------- BUTTON ---------------- */
 
-function revealAnswer() {
+mainButton.addEventListener("click", () => {
+
+  if (!questions.length) return;
 
   const q = questions[current];
 
-  answerDiv.textContent =
-    `ANSWER: ${q.answer}`;
-
-  let text = `The answer is ${q.answer}.`;
-
-  if (q.choices && q.choices[q.answer]) {
-    text += ` ${q.choices[q.answer]}.`;
-  }
-
-  speak(text);
-
-  mainButton.textContent = "NEXT QUESTION";
-
-  state = "answer";
-}
-
-
-// -------------------------
-// MAIN BUTTON
-// -------------------------
-
-mainButton.onclick = () => {
-
   if (state === "question") {
 
-    readQuestion();
+    readCurrentQuestion();
+
+    state = "answer";
 
     mainButton.textContent =
       "REVEAL ANSWER";
 
-    state = "ready";
-
-  } else if (state === "ready") {
-
-    revealAnswer();
-
-  } else if (state === "answer") {
-
-    current++;
-
-    showQuestion();
-  }
-
-};
-
-
-// -------------------------
-// REPLAY
-// -------------------------
-
-replayButton.onclick = () => {
-
-  if (questions[current]) {
-    readQuestion();
-  }
-
-};
-
-
-// -------------------------
-// DROPDOWNS
-// -------------------------
-
-packetSelect.onchange = () => {
-  loadPacket(packetSelect.value);
-};
-
-subjectSelect.onchange = () => {
-
-  if (subjectSelect.value === "all") {
-    showQuestion();
     return;
   }
 
-  const selected = subjectSelect.value;
+  if (state === "answer") {
 
-  questions = questions.filter(
-    q => q.subject === selected
-  );
+    if (q.answer) {
 
-  current = 0;
+      answerDiv.textContent =
+        `Answer: ${q.answer}`;
 
-  showQuestion();
-};
+      speak(
+        `The answer is ${q.answer}`
+      );
+
+    } else {
+
+      answerDiv.textContent =
+        "Answer not detected in PDF.";
+
+    }
+
+    state = "next";
+
+    mainButton.textContent =
+      "NEXT QUESTION";
+
+    return;
+  }
+
+  if (state === "next") {
+
+    if (current < questions.length - 1) {
+
+      current++;
+
+      showQuestion();
+
+    } else {
+
+      info.textContent =
+        "End of packet.";
+
+      mainButton.textContent =
+        "PACKET COMPLETE";
+
+    }
+  }
+});
 
 
-// -------------------------
-// SPACEBAR
-// -------------------------
+/* ---------------- REPLAY ---------------- */
 
-document.addEventListener("keydown", e => {
+replayButton.addEventListener("click", () => {
 
-  if (e.code === "Space") {
-
-    e.preventDefault();
-
-    mainButton.click();
+  if (lastSpeech) {
+    speak(lastSpeech);
+  } else {
+    readCurrentQuestion();
   }
 
 });
 
 
-// -------------------------
-// LOAD PACKET LIST
-// -------------------------
+/* ---------------- CONTROLS ---------------- */
 
-async function initialize() {
+packetSelect.addEventListener("change", () => {
 
-  const response =
-    await fetch("/packets.json");
+  loadPacket(
+    Number(packetSelect.value)
+  );
 
-  packets = await response.json();
+});
 
-  packetSelect.innerHTML = "";
 
-  packets.forEach((packet, i) => {
+subjectSelect.addEventListener(
+  "change",
+  applySubjectFilter
+);
 
-    const option =
-      document.createElement("option");
 
-    option.value = i;
-    option.textContent = packet.name;
+/* ---------------- START ---------------- */
 
-    packetSelect.appendChild(option);
-  });
-
-  await loadPacket(0);
-}
-
-initialize();
-```
+loadPackets();
