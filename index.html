@@ -1,0 +1,65 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SciBowl Reader</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<header>
+  <h1>SCI BOWL READER</h1>
+
+  <select id="packet">
+    <option>Loading packets...</option>
+  </select>
+
+  <select id="subject">
+    <option value="all">All Subjects</option>
+    <option>Biology</option>
+    <option>Chemistry</option>
+    <option>Physics</option>
+    <option>Math</option>
+    <option>Earth Science</option>
+    <option>Energy</option>
+  </select>
+
+  <select id="speed">
+    <option value=".75">0.75×</option>
+    <option value="1" selected>1×</option>
+    <option value="1.25">1.25×</option>
+    <option value="1.5">1.5×</option>
+    <option value="2">2×</option>
+  </select>
+
+  <select id="voice"></select>
+</header>
+
+<main>
+
+  <div id="info"></div>
+
+  <div id="question">
+    Loading...
+  </div>
+
+  <div id="answer"></div>
+
+  <div class="controls">
+    <button id="mainButton">🔊 READ QUESTION</button>
+    <button id="replay">↻ REPLAY</button>
+  </div>
+
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs"
+        type="module"></script>
+
+<script type="module" src="app.js"></script>
+
+</body>
+</html>
+```
