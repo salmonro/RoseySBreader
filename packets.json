@@ -17,16 +17,16 @@
   {
     "name": "Set 1",
     "file": "/packets/MITset1.pdf",
-    "category": "MIT Science Bowl"
+    "category": "MIT"
   },
   {
     "name": "Set 2",
     "file": "/packets/MITset2.pdf",
-    "category": "MIT Science Bowl"
+    "category": "MIT"
   },
   {
     "name": "Set 1",
     "file": "/packets/AVHSset1.pdf",
-    "category": "AVHS Science Bowl"
+    "category": "AVHS"
   }
 ]
