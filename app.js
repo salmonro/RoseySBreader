@@ -75,7 +75,7 @@ const PAUSES = {
 
   beforeChoices: 850,
 
-  betweenChoices: 850
+  betweenChoices: 800
 
 };
 
