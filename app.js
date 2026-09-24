@@ -1080,21 +1080,7 @@ function naturalPause(
 async function speakNatural(text, run) {
   if (!text || run !== speechRun) return false;
 
-  const words = text.trim().split(/\s+/);
-
-  for (let i = 0; i < words.length; i++) {
-    if (run !== speechRun) return false;
-
-    const word = words[i];
-
-    const ok = await speakChunk(word, run);
-    if (!ok) return false;
-
-    const stillRunning = await naturalPause(0.5, run);
-    if (!stillRunning) return false;
-  }
-
-  return run === speechRun;
+  return await speakChunk(text, run);
 }
 
 
@@ -1262,7 +1248,7 @@ async function speakScienceBowlQuestion(q) {
 
       ok =
         await naturalPause(
-          120,
+          20,
           run
         );
 
