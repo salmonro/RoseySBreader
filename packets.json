@@ -109,4 +109,19 @@
     "file": "/packets/AVHSset1.pdf",
     "category": "AVHS"
   }
+  {
+    "name": "Prometheus 2023 RR2",
+    "file": "/packets/Olympus_RR1.pdf",
+    "category": "AVHS"
+  }
+  {
+    "name": "Prometheus 2023 RR3",
+    "file": "/packets/Olympus_RR3.pdf",
+    "category": "AVHS"
+  }
+  {
+    "name": "Prometheus 2023 RR4",
+    "file": "/packets/Olympus_RR4.pdf",
+    "category": "AVHS"
+  }
 ]
