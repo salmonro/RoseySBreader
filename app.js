@@ -793,12 +793,9 @@ async function loadPackets() {
     }
 
   } catch (error) {
-
-    console.error(error);
-
-    info.textContent =
-      "Could not load packets.";
-
+  console.error("EXACT ERROR:", error);
+  info.textContent = "ERROR: " + error.message;
+  alert(error.stack);
   }
 
 }
