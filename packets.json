@@ -108,7 +108,7 @@
     "name": "Set 1",
     "file": "/packets/AVHSset1.pdf",
     "category": "AVHS"
-  }
+  },
   {
     "name": "Prometheus 2023 RR2",
     "file": "/packets/Olympus_RR1.pdf",
@@ -125,17 +125,17 @@
     "category": "AVHS"
   },
   {
-    "name": "Mosfet 2 RR5",
+    "name": "MOSFET 2 RR5",
     "file": "/packets/MOSFET 2 Round 5.pdf",
     "category": "MOSFET 2"
   },
   {
-    "name": "Mosfet 2 RR6",
+    "name": "MOSFET 2 RR6",
     "file": "/packets/MOSFET 2 Round 6.pdf",
     "category": "MOSFET 2"
   },
   {
-    "name": "Mosfet 2 RR8",
+    "name": "MOSFET 2 RR8",
     "file": "/packets/MOSFET 2 Round 8.pdf",
     "category": "MOSFET 2"
   }
