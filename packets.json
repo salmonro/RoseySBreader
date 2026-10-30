@@ -124,4 +124,19 @@
     "file": "/packets/Olympus_RR4.pdf",
     "category": "AVHS"
   }
+  {
+    "name": "Mosfet 2 RR5",
+    "file": "/packets/MOSFET 2 Round 5.pdf",
+    "category": "MOSFET 2"
+  }
+  {
+    "name": "Mosfet 2 RR6",
+    "file": "/packets/MOSFET 2 Round 6.pdf",
+    "category": "MOSFET 2"
+  }
+  {
+    "name": "Mosfet 2 RR8",
+    "file": "/packets/MOSFET 2 Round 8.pdf",
+    "category": "MOSFET 2"
+  }
 ]
