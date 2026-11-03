@@ -138,5 +138,10 @@
     "name": "MOSFET 2 RR8",
     "file": "/packets/MOSFET 2 Round 8.pdf",
     "category": "MOSFET 2"
+  },
+  {
+    "name": "MIT 2025 Round 5",
+    "file": "/packets/Round 5.pdf",
+    "category": "MIT"
   }
 ]
